@@ -1,0 +1,11 @@
+export { default as AddUser } from './AddUser';
+export { default as Courses } from './Courses';
+export { default as Dashboard } from './Dashboard';
+export { default as EditCourse } from './EditCourse';
+export { default as EditLesson } from './EditLesson';
+export { default as EditSlide } from './EditSlide';
+export { default as EditTour } from './EditTour';
+export { default as Lessons } from './Lessons';
+export { default as Slides } from './Slides';
+export { default as Tours } from './Tours';
+export { default as Users } from './Users';

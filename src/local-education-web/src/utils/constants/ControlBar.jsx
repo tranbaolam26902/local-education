@@ -1,0 +1,7 @@
+const CONTROL_BAR_OPTIONS = {
+    ZOOM_LEVEL: 4,
+    ZOOM_MIN: 30,
+    ZOOM_MAX: 120
+};
+
+export default CONTROL_BAR_OPTIONS;

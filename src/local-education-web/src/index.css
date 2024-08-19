@@ -1,0 +1,115 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import 'animate.css/animate.compat.css';
+
+:root {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    /* Colors */
+    --color-botega-green: #1f5514;
+    --color-nature-green: #639854;
+    --color-light-green: #a7e8a8;
+    --color-brown: #5b2f13;
+    --color-nature-yellow: #f6e2a1;
+    --color-light-yellow: #ffebcd;
+    --color-dark: #1a1a1a;
+    --color-typo: #35383b;
+}
+
+@layer base {
+    html {
+        color: var(--color-typo);
+    }
+}
+
+/* Hide scrollbar */
+@layer utilities {
+
+    /* Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        /* IE and Edge */
+        scrollbar-width: none;
+        /* Firefox */
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    overscroll-behavior: none;
+}
+
+.dark body {
+    background-color: black;
+}
+
+#root {
+    font-family: 'Noto Sans Display', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background-color: black;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(127, 127, 127);
+    background-clip: padding-box;
+
+    &:hover {
+        background: #7f7f7f99;
+        background-clip: padding-box;
+    }
+
+    &:active {
+        background: #7f7f7fcc;
+        background-clip: padding-box;
+    }
+
+    border: 2px solid transparent;
+    border-radius: 9999px;
+}
+
+/* Disable select button text */
+button {
+    user-select: none;
+}
+
+/* Hide Edge reveal button */
+::-ms-reveal {
+    display: none;
+}
+
+/* Hide arrows from input number */
+/* Firefox */
+input[type='number'] {
+    -moz-appearance: textfield;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Disable input's outline on focusing */
+input:focus,
+select:focus {
+    outline: none;
+}

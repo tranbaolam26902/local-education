@@ -1,0 +1,19 @@
+/* Libraries */
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+
+/* Redux */
+import { store } from '@redux/store.jsx';
+
+/* Styles */
+import '~/index.css';
+
+/* Components */
+import App from '~/App.jsx';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+    <Provider store={store}>
+        <App />
+    </Provider>
+);
