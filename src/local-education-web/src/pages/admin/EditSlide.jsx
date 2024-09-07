@@ -287,7 +287,8 @@ export default function EditSlide() {
         const correctOptionRadio = document.querySelector(`#question-${questionIndex}-correct-option-${answerIndex}`);
         if (correctOptionRadio.checked)
             document.querySelector(
-                `#question-${questionIndex}-correct-option-${questions.find((question) => question.index === questionIndex).options[0].index
+                `#question-${questionIndex}-correct-option-${
+                    questions.find((question) => question.index === questionIndex).options[0].index
                 }`
             ).checked = true;
     };
@@ -340,12 +341,6 @@ export default function EditSlide() {
             }
         }
 
-        const questionResult = await questionServices.addOrUpdateQuestion(slide.id, requiredQuestions, questions);
-
-        if (!questionResult.isSuccess) {
-            toast.error(questionResult.errors[0]);
-        }
-
         if (slide) {
             // Edit slide
             const saveResult = await slideServices.updateSlide({ ...newSlide, id: slide.id });
@@ -354,15 +349,36 @@ export default function EditSlide() {
                 toast.success('Lưu slide thành công.');
                 setErrorMessages([]);
                 setHasChanged(false);
+
+                const questionResult = await questionServices.addOrUpdateQuestion(
+                    slide.id,
+                    requiredQuestions,
+                    questions
+                );
+
+                if (!questionResult.isSuccess) {
+                    toast.error(questionResult.errors[0]);
+                }
             } else setErrorMessages(saveResult.errors);
         } else {
             // Add new slide
             const saveResult = await slideServices.addSlideToLesson(newSlide, lessonId);
 
             if (saveResult.isSuccess) {
+                const questionResult = await questionServices.addOrUpdateQuestion(
+                    slide.id,
+                    requiredQuestions,
+                    questions
+                );
+
+                if (!questionResult.isSuccess) {
+                    toast.error(questionResult.errors[0]);
+                }
+
                 toast.success('Thêm chương mới thành công.');
                 navigate('/admin/slides', { state: { courseId, lessonId } });
                 setHasChanged(false);
+                slide.id = saveResult.result.id;
             } else setErrorMessages(saveResult.errors);
         }
     };
@@ -456,10 +472,10 @@ export default function EditSlide() {
             <Container className='flex flex-col gap-y-4 py-4'>
                 {
                     <div className='flex items-center justify-between'>
-                        <h1 className='font-semibold text-2xl'>{id ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}</h1>
+                        <h1 className='text-2xl font-semibold'>{id ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}</h1>
                         <button
                             type='button'
-                            className='flex items-center gap-x-1 font-semibold text-sm hover:opacity-80'
+                            className='flex items-center gap-x-1 text-sm font-semibold hover:opacity-80'
                             onClick={handleViewContent}
                         >
                             <Unicons.UilEye size='24' />
@@ -468,11 +484,11 @@ export default function EditSlide() {
                     </div>
                 }
 
-                <form className='grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4' onSubmit={handleSaveSlide}>
+                <form className='grid grid-cols-1 gap-x-8 gap-y-4 lg:grid-cols-2' onSubmit={handleSaveSlide}>
                     {/* Start: Left section */}
                     <section className='flex flex-col gap-y-4'>
                         {errorMessages.map((errorMessage) => (
-                            <h6 key={errorMessage} className='text-center text-lg text-red-400 italic'>
+                            <h6 key={errorMessage} className='text-center text-lg italic text-red-400'>
                                 {errorMessage}
                             </h6>
                         ))}
@@ -482,8 +498,9 @@ export default function EditSlide() {
                                 <div className='flex flex-col gap-y-2'>
                                     <span className='font-semibold'>Chọn khóa học</span>
                                     <select
-                                        className={`px-4 py-2 w-full h-full bg-white border ${courseIdMessage ? 'border-red-400' : 'border-gray-400'
-                                            } rounded shadow-inner appearance-none dark:bg-dark`}
+                                        className={`h-full w-full border bg-white px-4 py-2 ${
+                                            courseIdMessage ? 'border-red-400' : 'border-gray-400'
+                                        } appearance-none rounded shadow-inner dark:bg-dark`}
                                         onChange={handleSelectCourse}
                                         value={courseId}
                                     >
@@ -495,15 +512,16 @@ export default function EditSlide() {
                                         ))}
                                     </select>
                                     {courseIdMessage && (
-                                        <span className='italic text-sm text-red-400'>{courseIdMessage}</span>
+                                        <span className='text-sm italic text-red-400'>{courseIdMessage}</span>
                                     )}
                                 </div>
                                 <div className='flex flex-col gap-y-2'>
                                     <span className='font-semibold'>Chọn chương</span>
                                     <select
                                         disabled={courseId === uuid.NIL}
-                                        className={`px-4 py-2 w-full h-full bg-white border ${lessonIdMessage ? 'border-red-400' : 'border-gray-400'
-                                            } rounded shadow-inner appearance-none dark:bg-dark`}
+                                        className={`h-full w-full border bg-white px-4 py-2 ${
+                                            lessonIdMessage ? 'border-red-400' : 'border-gray-400'
+                                        } appearance-none rounded shadow-inner dark:bg-dark`}
                                         onChange={handleSelectLesson}
                                         value={lessonId}
                                     >
@@ -515,7 +533,7 @@ export default function EditSlide() {
                                         ))}
                                     </select>
                                     {lessonIdMessage && (
-                                        <span className='italic text-sm text-red-400'>{lessonIdMessage}</span>
+                                        <span className='text-sm italic text-red-400'>{lessonIdMessage}</span>
                                     )}
                                 </div>
                             </>
@@ -626,13 +644,13 @@ export default function EditSlide() {
                         {/* Start: Select media section */}
                         <section className='flex flex-col gap-y-2'>
                             <div className='flex items-center justify-between'>
-                                <label htmlFor='media' className='cursor-pointer w-fit font-semibold'>
+                                <label htmlFor='media' className='w-fit cursor-pointer font-semibold'>
                                     Media
                                 </label>
                                 {media.path && (
                                     <button
                                         type='button'
-                                        className='font-semibold text-red-400 text-sm'
+                                        className='text-sm font-semibold text-red-400'
                                         onClick={handleDeleteMedia}
                                     >
                                         Xóa media
@@ -640,7 +658,7 @@ export default function EditSlide() {
                                 )}
                             </div>
                             {media.path ? (
-                                <div className='relative rounded overflow-hidden'>
+                                <div className='relative overflow-hidden rounded'>
                                     <img
                                         src={`${import.meta.env.VITE_API_ENDPOINT}/${media.thumbnailPath}`}
                                         alt='media'
@@ -648,7 +666,7 @@ export default function EditSlide() {
                                     />
                                     <button
                                         type='button'
-                                        className='absolute inset-0 flex items-center justify-center font-semibold text-xl text-white bg-gray-950 bg-opacity-60 opacity-0 hover:opacity-100'
+                                        className='absolute inset-0 flex items-center justify-center bg-gray-950 bg-opacity-60 text-xl font-semibold text-white opacity-0 hover:opacity-100'
                                         onClick={handleSelectFile}
                                     >
                                         Đổi media
@@ -659,15 +677,16 @@ export default function EditSlide() {
                                     <button
                                         id='media'
                                         type='button'
-                                        className={`flex flex-col items-center justify-center aspect-video border-2 border-dashed ${mediaMessage ? 'border-red-400' : 'border-gray-600 dark:border-white'
-                                            } rounded-lg transition-transform duration-200 hover:opacity-80 shadow-inner`}
+                                        className={`flex aspect-video flex-col items-center justify-center border-2 border-dashed ${
+                                            mediaMessage ? 'border-red-400' : 'border-gray-600 dark:border-white'
+                                        } rounded-lg shadow-inner transition-transform duration-200 hover:opacity-80`}
                                         onClick={handleSelectFile}
                                     >
                                         <Unicons.UilImage size='128' />
-                                        <span className='font-semibold text-xl'>Chọn media</span>
+                                        <span className='text-xl font-semibold'>Chọn media</span>
                                     </button>
                                     {mediaMessage && (
-                                        <span className='italic text-sm text-red-400'>{mediaMessage}</span>
+                                        <span className='text-sm italic text-red-400'>{mediaMessage}</span>
                                     )}
                                 </>
                             )}
@@ -678,18 +697,18 @@ export default function EditSlide() {
                         <section className='flex flex-col gap-y-1.5'>
                             {layout !== 'media' && (
                                 <>
-                                    <label className='w-fit font-semibold cursor-pointer'>Nội dung</label>
+                                    <label className='w-fit cursor-pointer font-semibold'>Nội dung</label>
                                     {contentMessage && (
-                                        <span className='italic text-sm text-red-400'>{contentMessage}</span>
+                                        <span className='text-sm italic text-red-400'>{contentMessage}</span>
                                     )}
                                     <Editor
                                         onInit={(_, editor) => (contentRef.current = editor)}
                                         apiKey='70axgk6y9p4knwssnip8h8ok0k5lzy2locbycrrgnujisbtr'
                                         init={{
                                             plugins:
-                                                'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount fullscreen',
+                                                'anchor autolink charmap codesample emoticons image link lists media searchreplace visualblocks wordcount fullscreen table',
                                             toolbar:
-                                                'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | fullscreen',
+                                                'undo redo | blocks fontfamily fontsize | bold strikethrough | link image media | align lineheight | numlist bullist indent outdent | emoticons charmap | fullscreen table italic underline',
                                             toolbar_mode: 'wrap',
                                             height: 720
                                         }}
@@ -709,27 +728,27 @@ export default function EditSlide() {
                     <section className='flex flex-col gap-y-2'>
                         {/* Add question */}
                         <div className='flex justify-between gap-x-4'>
-                            <label className='w-fit font-semibold cursor-pointer whitespace-nowrap'>
+                            <label className='w-fit cursor-pointer whitespace-nowrap font-semibold'>
                                 Danh sách câu hỏi
                             </label>
-                            <div className='flex items-center justify-end gap-x-4 gap-y-2 flex-wrap'>
+                            <div className='flex flex-wrap items-center justify-end gap-x-4 gap-y-2'>
                                 <button
                                     type='button'
-                                    className='text-sm text-gray-500 font-semibold'
+                                    className='text-sm font-semibold text-gray-500'
                                     onClick={handleExport}
                                 >
                                     Xuất ra Excel
                                 </button>
                                 <button
                                     type='button'
-                                    className='text-sm text-nature-green font-semibold'
+                                    className='text-sm font-semibold text-nature-green'
                                     onClick={handleImport}
                                 >
                                     Nhập từ Excel
                                 </button>
                                 <button
                                     type='button'
-                                    className='text-sm text-blue-400 font-semibold'
+                                    className='text-sm font-semibold text-blue-400'
                                     onClick={handleAddQuestion}
                                 >
                                     + Thêm câu hỏi
@@ -747,22 +766,23 @@ export default function EditSlide() {
                                         type='number'
                                         value={requiredQuestions}
                                         max={questions.length}
-                                        className={`ml-2 px-1 w-8 text-center bg-white dark:bg-black border ${isValidated && requiredQuestions === ''
+                                        className={`ml-2 w-8 border bg-white px-1 text-center dark:bg-black ${
+                                            isValidated && requiredQuestions === ''
                                                 ? 'border-red-400'
                                                 : 'border-gray-500'
-                                            } rounded-md`}
+                                        } rounded-md`}
                                         onChange={(e) => {
                                             setRequiredQuestions(e.target.value);
                                         }}
                                     />
                                 </div>
                                 {isValidated && requiredQuestions === '' && (
-                                    <span className='text-red-400 italic'>
+                                    <span className='italic text-red-400'>
                                         Số câu đúng tối thiểu không được để trống.
                                     </span>
                                 )}
                                 {isValidated && requiredQuestions > questions.length && (
-                                    <span className='text-red-400 italic'>
+                                    <span className='italic text-red-400'>
                                         Số câu đúng không được vượt quá số câu hỏi.
                                     </span>
                                 )}
@@ -770,18 +790,18 @@ export default function EditSlide() {
                         </div>
 
                         {/* Start: Questions section */}
-                        <section className='flex flex-col gap-y-8 mt-2'>
+                        <section className='mt-2 flex flex-col gap-y-8'>
                             {questions.map((question, questionIndex) => (
                                 <div
                                     key={question?.id || `question-${question.index}-${question.content}`}
-                                    className='flex flex-col gap-y-2 p-4 border border-gray-400 rounded-md'
+                                    className='flex flex-col gap-y-2 rounded-md border border-gray-400 p-4'
                                 >
                                     <div className='flex flex-col gap-y-2'>
                                         <div className='flex items-center justify-between gap-x-4'>
                                             <span className='font-semibold'>Câu hỏi {questionIndex + 1}</span>
                                             <button
                                                 type='button'
-                                                className='font-semibold text-sm text-red-400'
+                                                className='text-sm font-semibold text-red-400'
                                                 onClick={() => handleDeleteQuestion(question.index)}
                                             >
                                                 Xoá câu hỏi
@@ -790,24 +810,24 @@ export default function EditSlide() {
                                         <div className='flex flex-col gap-y-1'>
                                             <button
                                                 type='button'
-                                                className='font-semibold cursor-pointer w-fit'
+                                                className='w-fit cursor-pointer font-semibold'
                                                 onClick={() => handleSelectQuestionImage(question.index)}
                                             >
                                                 Ảnh minh hoạ
                                             </button>
-                                            <div className='relative group rounded overflow-hidden'>
+                                            <div className='group relative overflow-hidden rounded'>
                                                 {question.url ? (
                                                     <>
                                                         <button
                                                             type='button'
-                                                            className='absolute inset-0 flex items-center justify-center font-semibold text-xl text-white bg-gray-950 bg-opacity-60 opacity-0 hover:opacity-100'
+                                                            className='absolute inset-0 flex items-center justify-center bg-gray-950 bg-opacity-60 text-xl font-semibold text-white opacity-0 hover:opacity-100'
                                                             onClick={() => handleSelectQuestionImage(question.index)}
                                                         >
                                                             Đổi ảnh
                                                         </button>
                                                         <button
                                                             type='button'
-                                                            className='absolute z-10 top-2 right-2 px-2 py-1 font-semibold text-sm text-white bg-gray-400 rounded-full hover:opacity-70'
+                                                            className='absolute right-2 top-2 z-10 rounded-full bg-gray-400 px-2 py-1 text-sm font-semibold text-white hover:opacity-70'
                                                             onClick={() => handleDeleteQuestionImage(question.index)}
                                                         >
                                                             Xoá ảnh
@@ -821,7 +841,7 @@ export default function EditSlide() {
                                                 ) : (
                                                     <button
                                                         type='button'
-                                                        className='flex items-center justify-center gap-x-2 py-2 w-full bg-white dark:bg-dark border border-dashed border-gray-400 rounded-md hover:opacity-70 shadow-inner'
+                                                        className='flex w-full items-center justify-center gap-x-2 rounded-md border border-dashed border-gray-400 bg-white py-2 shadow-inner hover:opacity-70 dark:bg-dark'
                                                         onClick={() => handleSelectQuestionImage(question.index)}
                                                     >
                                                         <Unicons.UilImage size='24' />
@@ -833,7 +853,7 @@ export default function EditSlide() {
                                         <div className='flex flex-col gap-y-1'>
                                             <label
                                                 htmlFor={`question-${question.index}`}
-                                                className='font-semibold cursor-pointer w-fit'
+                                                className='w-fit cursor-pointer font-semibold'
                                             >
                                                 Nội dung
                                             </label>
@@ -842,13 +862,14 @@ export default function EditSlide() {
                                                 rows={2}
                                                 placeholder={`Nhập nội dung câu hỏi ${questionIndex + 1}`}
                                                 defaultValue={question.content}
-                                                className={`px-4 py-2 w-full border ${question.content === '' && isValidated
+                                                className={`w-full border px-4 py-2 ${
+                                                    question.content === '' && isValidated
                                                         ? 'border-red-400'
                                                         : 'border-gray-400'
-                                                    } outline-none rounded shadow-inner dark:bg-dark resize-none`}
+                                                } resize-none rounded shadow-inner outline-none dark:bg-dark`}
                                             ></textarea>
                                             {question.content === '' && isValidated && (
-                                                <span className='-mt-1 text-red-400 italic'>
+                                                <span className='-mt-1 italic text-red-400'>
                                                     Nội dung câu hỏi không được để trống.
                                                 </span>
                                             )}
@@ -872,7 +893,7 @@ export default function EditSlide() {
                                                 {question.options.length > 2 && (
                                                     <button
                                                         type='button'
-                                                        className='absolute top-0 right-0 font-semibold text-sm text-gray-500 dark:text-white'
+                                                        className='absolute right-0 top-0 text-sm font-semibold text-gray-500 dark:text-white'
                                                         onClick={() => handleDeleteOption(question.index, option.index)}
                                                     >
                                                         Xoá đáp án
@@ -882,7 +903,8 @@ export default function EditSlide() {
                                         ))}
                                     </div>
                                     <div className='flex items-center justify-between gap-x-4'>
-                                        <div className='grow flex flex-wrap items-center gap-x-3'>
+                                        {' '}
+                                        <div className='flex grow flex-wrap items-center gap-x-3'>
                                             <span className='w-max font-semibold'>Đáp án đúng:</span>
                                             {question.options.map((option, optionIndex) => (
                                                 <div key={`question-${question.index}-correct-option-${option.index}`}>
@@ -904,14 +926,14 @@ export default function EditSlide() {
                                         </div>
                                         <button
                                             type='button'
-                                            className='whitespace-nowrap text-sm text-green-400 font-semibold'
+                                            className='whitespace-nowrap text-sm font-semibold text-green-400'
                                             onClick={() => handleAddOption(question.index)}
                                         >
                                             + Thêm đáp án
                                         </button>
                                     </div>
                                     {question.indexCorrect === 0 && isValidated && (
-                                        <span className='-mt-2 text-red-400 italic'>
+                                        <span className='-mt-2 italic text-red-400'>
                                             Đáp án đúng không được để trống.
                                         </span>
                                     )}
@@ -933,7 +955,7 @@ export default function EditSlide() {
                         </button>
                         <button
                             type='submit'
-                            className='px-4 py-2 min-w-[6rem] font-semibold text-white bg-nature-green rounded hover:opacity-80'
+                            className='min-w-[6rem] rounded bg-nature-green px-4 py-2 font-semibold text-white hover:opacity-80'
                             onClick={handleSaveSlide}
                         >
                             Lưu
