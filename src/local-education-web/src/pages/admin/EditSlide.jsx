@@ -702,7 +702,7 @@ export default function EditSlide() {
                                     )}
                                     <Editor
                                         onInit={(_, editor) => (contentRef.current = editor)}
-                                        apiKey='iy151ilgnsokvtpsb8eroaey31cdbzndda9k1s71o3hwlli9'
+                                        apiKey={import.meta.env.VITE_TINY_MCE_API_KEY}
                                         init={{
                                             plugins:
                                                 'anchor autolink charmap codesample emoticons image link lists media searchreplace visualblocks wordcount fullscreen table',
