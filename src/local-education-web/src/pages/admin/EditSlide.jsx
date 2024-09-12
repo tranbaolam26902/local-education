@@ -366,7 +366,7 @@ export default function EditSlide() {
 
             if (saveResult.isSuccess) {
                 const questionResult = await questionServices.addOrUpdateQuestion(
-                    slide.id,
+                    saveResult.result.id,
                     requiredQuestions,
                     questions
                 );
@@ -378,7 +378,6 @@ export default function EditSlide() {
                 toast.success('Thêm chương mới thành công.');
                 navigate('/admin/slides', { state: { courseId, lessonId } });
                 setHasChanged(false);
-                slide.id = saveResult.result.id;
             } else setErrorMessages(saveResult.errors);
         }
     };
