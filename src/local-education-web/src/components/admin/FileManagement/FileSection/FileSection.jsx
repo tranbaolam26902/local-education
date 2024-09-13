@@ -209,13 +209,13 @@ export default function FileSection() {
     }, [fileManagement.multiSelectMode]);
 
     return (
-        <section className='col-span-12 lg:col-span-8 flex flex-col gap-y-4 px-4 pt-1 overflow-y-auto overflow-x-hidden'>
+        <section className='col-span-12 flex flex-col gap-y-4 overflow-y-auto overflow-x-hidden px-4 pt-1 lg:col-span-8'>
             {/* Start: Header section */}
             <section className='relative'>
-                <h2 className='hidden lg:block font-bold text-xl'>{renderCategoryName()}</h2>
+                <h2 className='hidden text-xl font-bold lg:block'>{renderCategoryName()}</h2>
                 <select
                     ref={categoryNameRef}
-                    className='lg:hidden font-bold text-xl dark:bg-black'
+                    className='text-xl font-bold dark:bg-black lg:hidden'
                     onChange={handleChangeCategory}
                 >
                     <option value='all'>Tất cả</option>
@@ -228,7 +228,7 @@ export default function FileSection() {
                 </select>
                 <button
                     type='button'
-                    className='absolute -top-1 right-0 flex items-center justify-center gap-1 px-4 py-1 text-white bg-nature-green rounded shadow-inner hover:opacity-80'
+                    className='absolute -top-1 right-0 flex items-center justify-center gap-1 rounded bg-nature-green px-4 py-1 text-white shadow-inner hover:opacity-80'
                     onClick={() => {
                         inputFileRef.current.click();
                     }}
@@ -241,7 +241,7 @@ export default function FileSection() {
                     type='file'
                     hidden
                     multiple
-                    accept='image/*, video/*, audio/*'
+                    accept='image/*, video/*, audio/*, .docx, .pdf, .xlsx'
                     onChange={handleUploadFile}
                 />
             </section>
@@ -267,7 +267,7 @@ export default function FileSection() {
                 {/* Start: Action buttons */}
                 <div className='col-span-12 lg:col-span-4 xl:col-span-3 2xl:col-span-3'>
                     <select
-                        className='px-4 py-2 w-full h-full bg-white border border-gray-400 rounded shadow-inner appearance-none dark:bg-dark'
+                        className='h-full w-full appearance-none rounded border border-gray-400 bg-white px-4 py-2 shadow-inner dark:bg-dark'
                         onChange={handleChangeSortColumn}
                     >
                         <option value='createdDate'>Sắp xếp theo Ngày</option>
@@ -281,7 +281,7 @@ export default function FileSection() {
                         <button
                             type='button'
                             title='Đảo ngược hướng sắp xếp'
-                            className='flex items-center justify-center p-2 h-full aspect-square bg-white border border-gray-400 rounded shadow-inner drop hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30'
+                            className='drop flex aspect-square h-full items-center justify-center rounded border border-gray-400 bg-white p-2 shadow-inner hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30'
                             onClick={handleToggleSortOrder}
                         >
                             {fileManagement.fileQueries.SortOrder === 'asc' ? (
@@ -293,7 +293,7 @@ export default function FileSection() {
                         <button
                             type='button'
                             title={settings.fileViewMode === 'grid' ? 'Bố cục kiểu danh sách' : 'Bố cục kiểu lưới'}
-                            className='flex items-center justify-center p-2 h-full aspect-square bg-white border border-gray-400 rounded shadow-inner hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30'
+                            className='flex aspect-square h-full items-center justify-center rounded border border-gray-400 bg-white p-2 shadow-inner hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30'
                             onClick={handleToggleFileViewMode}
                         >
                             {settings.fileViewMode === 'grid' ? (
@@ -306,8 +306,9 @@ export default function FileSection() {
                             <button
                                 type='button'
                                 title='Chuyển chế độ chọn'
-                                className={`flex items-center justify-center p-2 h-full aspect-square bg-white border border-gray-400 rounded shadow-inner hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30${fileManagement.multiSelectMode ? ' outline outline-2 outline-blue-400' : ''
-                                    }`}
+                                className={`flex aspect-square h-full items-center justify-center rounded border border-gray-400 bg-white p-2 shadow-inner hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30${
+                                    fileManagement.multiSelectMode ? ' outline outline-2 outline-blue-400' : ''
+                                }`}
                                 onClick={handleToggleMultiSelectMode}
                             >
                                 <Unicons.UilCheckSquare size='24' />
@@ -317,7 +318,7 @@ export default function FileSection() {
                             <button
                                 type='button'
                                 title={fileManagement.currentCategory === 'trash' ? 'Khôi phục' : 'Xóa'}
-                                className='flex items-center justify-center p-2 h-full aspect-square bg-white border border-gray-400 rounded shadow-inner hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30'
+                                className='flex aspect-square h-full items-center justify-center rounded border border-gray-400 bg-white p-2 shadow-inner hover:bg-gray-100 dark:bg-dark dark:hover:bg-white/30'
                                 onClick={handleMoveFilesToTrash}
                             >
                                 {fileManagement.currentCategory === 'trash' ? (
@@ -331,10 +332,10 @@ export default function FileSection() {
                 </div>
 
                 {fileManagement.currentCategory === 'trash' && files.length !== 0 && (
-                    <div className='col-span-12 lg:col-span-4 xl:col-span-3 2xl:col-span-3 self-center'>
+                    <div className='col-span-12 self-center lg:col-span-4 xl:col-span-3 2xl:col-span-3'>
                         <button
                             type='button'
-                            className='flex items-center justify-center gap-1 w-fit text-red-400 hover:opacity-80'
+                            className='flex w-fit items-center justify-center gap-1 text-red-400 hover:opacity-80'
                             onClick={handleEmptyTrash}
                         >
                             <Unicons.UilTrash size='20' />
@@ -352,10 +353,10 @@ export default function FileSection() {
                     {isLoading ? (
                         <Unicons.UilSpinner
                             size='48'
-                            className='animate-spin animate-infinite animate-duration-1000 mx-auto dark:text-white'
+                            className='animate-infinite animate-duration-1000 mx-auto animate-spin dark:text-white'
                         />
                     ) : (
-                        <section className='grid grid-cols-12 gap-4 -m-1 p-1 pb-4 overflow-y-auto no-scrollbar'>
+                        <section className='no-scrollbar -m-1 grid grid-cols-12 gap-4 overflow-y-auto p-1 pb-4'>
                             {files.map((file) => (
                                 <FileGridItem key={file.id} file={file} />
                             ))}
@@ -367,10 +368,10 @@ export default function FileSection() {
                     {isLoading ? (
                         <Unicons.UilSpinner
                             size='48'
-                            className='animate-spin animate-infinite animate-duration-1000 mx-auto dark:text-white'
+                            className='animate-infinite animate-duration-1000 mx-auto animate-spin dark:text-white'
                         />
                     ) : (
-                        <section className='-m-1 p-1 pb-4 overflow-y-auto no-scrollbar'>
+                        <section className='no-scrollbar -m-1 overflow-y-auto p-1 pb-4'>
                             {files.map((file) => (
                                 <FileRowItem key={file.id} file={file} />
                             ))}
@@ -380,7 +381,7 @@ export default function FileSection() {
             )}
             {/* End: File items section */}
             <div className='relative'>
-                <div className='absolute -top-6 left-0 right-0 h-4 bg-gradient-to-t from-white dark:from-black to-transparent'></div>
+                <div className='absolute -top-6 left-0 right-0 h-4 bg-gradient-to-t from-white to-transparent dark:from-black'></div>
                 <Pager
                     metadata={metadata}
                     increasePageNumber={() => {

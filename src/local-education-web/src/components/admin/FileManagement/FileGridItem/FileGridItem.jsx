@@ -5,6 +5,9 @@ import * as Unicons from '@iconscout/react-unicons';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 
+/* Assets */
+import { images } from '@assets/images';
+
 /* Redux */
 import {
     addFileToSelectedList,
@@ -138,18 +141,41 @@ export default function FileGridItem({ file }) {
 
     return (
         <div
-            className={`col-span-6 md:col-span-4 xl:col-span-3 relative flex flex-col gap-y-1 p-2 h-fit bg-gray-200 dark:bg-dark border dark:border-gray-700 rounded outline outline-4 ${fileManagement.selectedFiles.includes(file) ? 'outline-blue-400' : 'outline-transparent'
-                }`}
+            className={`relative col-span-6 flex h-fit flex-col gap-y-1 rounded border bg-gray-200 p-2 outline outline-4 dark:border-gray-700 dark:bg-dark md:col-span-4 xl:col-span-3 ${
+                fileManagement.selectedFiles.includes(file) ? 'outline-blue-400' : 'outline-transparent'
+            }`}
             role='button'
             onClick={handleSelectFile}
         >
-            <img
-                src={`${import.meta.env.VITE_API_ENDPOINT}/${file.thumbnailPath}`}
-                alt={file.name}
-                className='aspect-video object-center object-cover rounded-sm drop-shadow'
-            />
+            {file.thumbnailPath === 'app_data/audio_thumbnail.png' ||
+            file.fileType === 'Audio' ||
+            file.name.includes('.mp3') ? (
+                <img
+                    src={images.audioThumbnail}
+                    alt={file.name}
+                    className='aspect-video rounded-sm object-cover object-center drop-shadow'
+                />
+            ) : file.thumbnailPath === 'app_data/excel-logo.png' || file.name.includes('.xlsx') ? (
+                <img
+                    src={images.excelLogo}
+                    alt={file.name}
+                    className='aspect-video rounded-sm object-cover object-center drop-shadow'
+                />
+            ) : file.thumbnailPath === 'app_data/other_thumbnail.png' || file.fileType === 'Other' ? (
+                <img
+                    src={images.otherThumbnail}
+                    alt={file.name}
+                    className='aspect-video rounded-sm object-cover object-center drop-shadow'
+                />
+            ) : (
+                <img
+                    src={`${import.meta.env.VITE_API_ENDPOINT}/${file.thumbnailPath}`}
+                    alt={file.name}
+                    className='aspect-video rounded-sm object-cover object-center drop-shadow'
+                />
+            )}
             <div className='relative flex items-center gap-x-1'>
-                <span className='flex-grow text-sm truncate'>{extractFileName(file.name).name}</span>
+                <span className='flex-grow truncate text-sm'>{extractFileName(file.name).name}</span>
                 {!fileManagement.isSelectingFiles && (
                     <>
                         <button ref={fileOptionsButtonRef} type='button' onClick={handleToggleFileOptions}>
@@ -160,17 +186,14 @@ export default function FileGridItem({ file }) {
                                 <Fade
                                     ref={fileOptionsRef}
                                     duration={0.1}
-                                    className='absolute right-8 z-10 flex flex-col py-0.5 w-max bg-white rounded shadow-2xl
-
-                            dark:bg-dark border dark:border-gray-700 dark:after:border-l-dark dark:before:inline-block dark:before:border-l-gray-600
-
-                            after:absolute after:top-1/2 after:left-full after:-translate-y-1/2 after:border-8 after:border-transparent after:border-l-white
-
-                            before:hidden before:absolute before:top-1/2 before:-right-[17px] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-l-white'
+                                    className='absolute right-8 z-10 flex w-max flex-col rounded border bg-white py-0.5
+                            shadow-2xl before:absolute before:-right-[17px] before:top-1/2 before:hidden before:-translate-y-1/2
+                            before:border-8 before:border-transparent before:border-l-white after:absolute after:left-full after:top-1/2 after:-translate-y-1/2
+                            after:border-8 after:border-transparent after:border-l-white dark:border-gray-700 dark:bg-dark dark:before:inline-block dark:before:border-l-gray-600 dark:after:border-l-dark'
                                 >
                                     <button
                                         type='button'
-                                        className='lg:hidden flex items-center gap-1 px-2 text-left text-sm hover:opacity-80'
+                                        className='flex items-center gap-1 px-2 text-left text-sm hover:opacity-80 lg:hidden'
                                         onClick={handleEnableMobileFilePreviewSection}
                                     >
                                         Chi tiết
@@ -186,8 +209,9 @@ export default function FileGridItem({ file }) {
                                     )}
                                     <button
                                         type='button'
-                                        className={`flex items-center gap-1 px-2 text-left text-sm${file.isDeleted ? ' ' : ' text-red-400 '
-                                            }over:opacity-80`}
+                                        className={`flex items-center gap-1 px-2 text-left text-sm${
+                                            file.isDeleted ? ' ' : ' text-red-400 '
+                                        }over:opacity-80`}
                                         onClick={handleToggleFilesDeletedStatus}
                                     >
                                         {file.isDeleted ? 'Khôi phục' : 'Xoá'}
@@ -195,7 +219,7 @@ export default function FileGridItem({ file }) {
                                     {file.isDeleted && (
                                         <button
                                             type='button'
-                                            className='flex items-center gap-1 px-2 text-left text-sm text-red-400 over:opacity-80'
+                                            className='over:opacity-80 flex items-center gap-1 px-2 text-left text-sm text-red-400'
                                             onClick={handleDeleteFiles}
                                         >
                                             Xoá

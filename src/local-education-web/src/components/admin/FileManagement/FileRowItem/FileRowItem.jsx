@@ -3,6 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import * as Unicons from '@iconscout/react-unicons';
 import { toast } from 'react-toastify';
 
+/* Assets */
+import { images } from '@assets/images';
+
 /* Redux */
 import {
     addFileToSelectedList,
@@ -101,24 +104,47 @@ export default function FileRowItem({ file }) {
 
     return (
         <div
-            className={`col-span-12 relative flex items-center gap-x-2 lg:gap-x-4 p-2 rounded ${fileManagement.selectedFiles.includes(file)
+            className={`relative col-span-12 flex items-center gap-x-2 rounded p-2 lg:gap-x-4 ${
+                fileManagement.selectedFiles.includes(file)
                     ? 'bg-blue-200 dark:bg-gray-600'
                     : 'odd:bg-gray-100 dark:odd:bg-dark'
-                }`}
+            }`}
             role='button'
             onClick={handleSelectFile}
         >
-            <img
-                src={`${import.meta.env.VITE_API_ENDPOINT}/${file.thumbnailPath}`}
-                alt={file.name}
-                className='aspect-video object-center object-cover h-10 rounded-sm drop-shadow'
-            />
+            {file.thumbnailPath === 'app_data/audio_thumbnail.png' ||
+            file.fileType === 'Audio' ||
+            file.name.includes('.mp3') ? (
+                <img
+                    src={images.audioThumbnail}
+                    alt={file.name}
+                    className='aspect-video h-10 rounded-sm object-cover object-center drop-shadow'
+                />
+            ) : file.thumbnailPath === 'app_data/excel-logo.png' || file.name.includes('.xlsx') ? (
+                <img
+                    src={images.excelLogo}
+                    alt={file.name}
+                    className='aspect-video h-10 rounded-sm object-cover object-center drop-shadow'
+                />
+            ) : file.thumbnailPath === 'app_data/other_thumbnail.png' || file.fileType === 'Other' ? (
+                <img
+                    src={images.otherThumbnail}
+                    alt={file.name}
+                    className='aspect-video h-10 rounded-sm object-cover object-center drop-shadow'
+                />
+            ) : (
+                <img
+                    src={`${import.meta.env.VITE_API_ENDPOINT}/${file.thumbnailPath}`}
+                    alt={file.name}
+                    className='aspect-video h-10 rounded-sm object-cover object-center drop-shadow'
+                />
+            )}
             <h5 className='flex-grow truncate'>{file.name}</h5>
             <div className='flex items-center gap-2'>
                 <button
                     type='button'
                     title='Chi tiết'
-                    className='lg:hidden text-gray-600 dark:text-white hover:opacity-80'
+                    className='text-gray-600 hover:opacity-80 dark:text-white lg:hidden'
                     onClick={handleEnableMobileFilePreviewSection}
                 >
                     <Unicons.UilInfoCircle size='20' />
@@ -127,7 +153,7 @@ export default function FileRowItem({ file }) {
                     <button
                         type='button'
                         title='Đổi tên'
-                        className='text-gray-600 dark:text-white hover:opacity-80'
+                        className='text-gray-600 hover:opacity-80 dark:text-white'
                         onClick={handleRenameFile}
                     >
                         <Unicons.UilPen size='20' />
