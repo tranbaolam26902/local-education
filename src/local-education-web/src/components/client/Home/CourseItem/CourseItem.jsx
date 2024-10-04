@@ -14,12 +14,12 @@ export default function CourseItem({ course }) {
     };
     return (
         <CardContainer containerClassName='h-full'>
-            <CardBody className='bg-white relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] sm:w-[30rem] rounded-xl p-8 border h-full flex flex-col'>
+            <CardBody className='group/card relative flex h-full flex-col rounded-xl border border-black/[0.1] bg-white p-8 dark:border-white/[0.2] dark:bg-black dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] sm:w-[30rem]'>
                 <CardItem
                     as={Link}
                     to={`/courses/${course.urlSlug}`}
                     translateZ='50'
-                    className='text-lg font-bold text-neutral-600 dark:text-white line-clamp-2 hover:opacity-70'
+                    className='line-clamp-2 text-lg font-bold text-neutral-600 hover:opacity-70 dark:text-white'
                 >
                     {course.title}
                 </CardItem>
@@ -28,13 +28,13 @@ export default function CourseItem({ course }) {
                         <CardItem
                             as='p'
                             translateZ='60'
-                            className='text-neutral-500 text-sm mt-2 dark:text-neutral-300 line-clamp-4 mb-4'
+                            className='mb-4 mt-2 line-clamp-4 text-sm text-neutral-500 dark:text-neutral-300'
                         >
                             {course.description}
                         </CardItem>
                     </div>
                 ) : (
-                    <CardItem as='p' className='line-clamp-4 text-sm mt-2 mb-4 opacity-0'>
+                    <CardItem as='p' className='mb-4 mt-2 line-clamp-4 text-sm opacity-0'>
                         Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad
                         nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia.
                         Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla
@@ -49,19 +49,22 @@ export default function CourseItem({ course }) {
                     as='img'
                     translateZ={100}
                     src={`${import.meta.env.VITE_API_ENDPOINT}/${course.urlPath}`}
-                    className='w-full aspect-video object-cover rounded-xl group-hover/card:shadow-xl cursor-pointer'
+                    className='aspect-video w-full cursor-pointer rounded-xl object-cover group-hover/card:shadow-xl'
                     alt={course.title}
                     onClick={handleNavigate}
                 ></CardItem>
-                <div className='flex justify-between items-center mt-8 px-4'>
-                    <CardItem translateZ={50} className='rounded-xl text-sm font-semibold uppercase dark:text-white'>
+                <div className='mt-8 flex items-center justify-between px-4'>
+                    <CardItem
+                        translateZ={50}
+                        className='rounded-xl text-sm font-semibold uppercase opacity-0 dark:text-white'
+                    >
                         {course.totalLesson} bài học
                     </CardItem>
                     <CardItem
                         as={Link}
                         to={`/courses/${course.urlSlug}`}
                         translateZ={50}
-                        className='px-4 py-2 rounded-xl bg-black dark:bg-white dark:text-black text-white text-xs font-bold hover:shadow-2xl hover:bg-opacity-70 dark:hover:bg-gray-200'
+                        className='rounded-xl bg-black px-4 py-2 text-xs font-bold text-white hover:bg-opacity-70 hover:shadow-2xl dark:bg-white dark:text-black dark:hover:bg-gray-200'
                     >
                         Xem chi tiết
                     </CardItem>

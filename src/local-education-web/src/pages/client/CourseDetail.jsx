@@ -75,19 +75,19 @@ export default function CourseDetail() {
     }, []);
 
     return (
-        <PageTransition className='min-h-[calc(100svh-3.75rem)] dark:text-white dark:bg-black'>
-            <Container className='flex flex-col gap-y-8 md:gap-y-12 py-8 md:py-12'>
-                <div className='relative grid grid-cols-1 xl:grid-cols-3 gap-8'>
+        <PageTransition className='min-h-[calc(100svh-3.75rem)] dark:bg-black dark:text-white'>
+            <Container className='flex flex-col gap-y-8 py-8 md:gap-y-12 md:py-12'>
+                <div className='relative grid grid-cols-1 gap-8 xl:grid-cols-3'>
                     {/* Start: Course detail section */}
-                    <section className='xl:col-span-2 flex flex-col gap-y-8'>
-                        <h1 className='font-bold text-2xl md:text-3xl lg:text-4xl'>{course.title}</h1>
+                    <section className='flex flex-col gap-y-8 xl:col-span-2'>
+                        <h1 className='text-2xl font-bold md:text-3xl lg:text-4xl'>{course.title}</h1>
 
                         <p>{course.description}</p>
 
                         {/* Start: Course content section */}
                         <div className='-mt-4 lg:-mt-8'>
-                            <div className='sticky z-10 top-[3.75rem] flex flex-col gap-y-2 py-4 lg:py-8 bg-white dark:bg-black'>
-                                <h2 className='font-bold text-xl'>Nội dung khóa học</h2>
+                            <div className='sticky top-[3.75rem] z-10 flex flex-col gap-y-2 bg-white py-4 dark:bg-black lg:py-8'>
+                                <h2 className='text-xl font-bold'>Nội dung khóa học</h2>
 
                                 <div className='flex items-center gap-x-3'>
                                     <span>
@@ -111,16 +111,16 @@ export default function CourseDetail() {
 
                     {/* Start: Course enrollment section */}
                     <section className=''>
-                        <div className='sticky top-[6.75rem] flex flex-col gap-y-8 items-center'>
+                        <div className='sticky top-[6.75rem] flex flex-col items-center gap-y-8'>
                             <img
                                 src={`${import.meta.env.VITE_API_ENDPOINT}/${course.urlPath}`}
                                 alt={course.title}
-                                className='w-full object-center object-cover rounded-xl drop-shadow shadow-inner'
+                                className='w-full rounded-xl object-cover object-center shadow-inner drop-shadow'
                             />
-                            {lessons.length !== 0 ? (
+                            {lessons.length > 0 && lessons.reduce((acc, current) => acc + current.totalSlide, 0) > 0 ? (
                                 <button
                                     type='button'
-                                    className='px-6 py-3 font-bold text-white uppercase bg-gradient-to-tl from-nature-green via-nature-green to-light-green rounded-full drop-shadow shadow-inner hover:opacity-80 transition duration-300'
+                                    className='rounded-full bg-gradient-to-tl from-nature-green via-nature-green to-light-green px-6 py-3 font-bold uppercase text-white shadow-inner drop-shadow transition duration-300 hover:opacity-80'
                                     onClick={handleEnroll}
                                 >
                                     {!learningSlice.progress || learningSlice.progress.completed === 0
@@ -131,13 +131,13 @@ export default function CourseDetail() {
                                 <button
                                     disabled
                                     type='button'
-                                    className='px-6 py-3 font-bold text-white uppercase bg-nature-green rounded-full drop-shadow shadow-inner opacity-50'
+                                    className='rounded-full bg-nature-green px-6 py-3 font-bold uppercase text-white opacity-50 shadow-inner drop-shadow'
                                 >
                                     Bắt đầu học
                                 </button>
                             )}
                             {auth.accessToken && (
-                                <div className='flex flex-col gap-y-2 items-center w-full'>
+                                <div className='flex w-full flex-col items-center gap-y-2'>
                                     <h6 className='flex gap-x-1 font-semibold'>
                                         <span>Hoàn thành</span>
                                         <span>
@@ -148,9 +148,9 @@ export default function CourseDetail() {
                                         <span>/</span>
                                         <span>{lessons.reduce((acc, current) => acc + current.totalSlide, 0)}</span>
                                     </h6>
-                                    <div className='overflow-hidden relative w-full h-2 bg-gray-200 rounded-full'>
+                                    <div className='relative h-2 w-full overflow-hidden rounded-full bg-gray-200'>
                                         <span
-                                            className='absolute top-0 left-0 bottom-0 bg-nature-green'
+                                            className='absolute bottom-0 left-0 top-0 bg-nature-green'
                                             style={{
                                                 width: learningSlice.progress
                                                     ? `${Math.round(learningSlice.progress.completed)}%`
