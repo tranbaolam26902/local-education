@@ -140,15 +140,15 @@ public static class WebApplicationExtensions
     public static WebApplicationBuilder ConfigureFileUpload(
         this WebApplicationBuilder builder)
     {
-        builder.Services.Configure<FormOptions>(options =>
-        {
-            options.MultipartBodyLengthLimit = 1073741824; // 1GB in bytes
-        });
-
-        //builder.WebHost.UseKestrel(option =>
+        //builder.Services.Configure<FormOptions>(options =>
         //{
-        //    option.Limits.MaxRequestBodySize = 1073741824;
+        //    options.MultipartBodyLengthLimit = 1073741824; // 1GB in bytes
         //});
+
+        builder.WebHost.UseKestrel(option =>
+        {
+            option.Limits.MaxRequestBodySize = 1073741824;
+        });
 
         return builder;
     }
