@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using LocalEducation.WebApi.Extensions;
 using LocalEducation.WebApi.Models;
 using System.Net;
 
@@ -18,10 +17,8 @@ public class ValidatorFilter<T> : IEndpointFilter where T : class
 		EndpointFilterInvocationContext context,
 		EndpointFilterDelegate next)
 	{
-		var model = context.Arguments
-			.SingleOrDefault(s => s?.GetType() == typeof(T)) as T;
-
-		if (model == null)
+		if (context.Arguments
+			.SingleOrDefault(s => s?.GetType() == typeof(T)) is not T model)
 		{
 			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, new[]
 			{
@@ -29,14 +26,11 @@ public class ValidatorFilter<T> : IEndpointFilter where T : class
 			}));
 		}
 
-		var validationResult = await _validator.ValidateAsync(model);
+		FluentValidation.Results.ValidationResult validationResult = await _validator.ValidateAsync(model);
 
-		if (!validationResult.IsValid)
-		{
-			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest,
-				validationResult));
-		}
-
-		return await next(context);
+		return !validationResult.IsValid
+			? Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest,
+				validationResult))
+			: await next(context);
 	}
 }

@@ -5,10 +5,10 @@ namespace LocalEducation.WebApi.Validations;
 
 public class CourseValidator : AbstractValidator<CourseEditModel>
 {
-    public CourseValidator()
-    {
-        RuleFor(s => s.Title)
-            .NotEmpty()
-            .WithMessage("Tên khóa học không được để trống");
-    }
+	public CourseValidator()
+	{
+		RuleFor(s => s.Title)
+			.NotEmpty()
+			.WithMessage("Tên khóa học không được để trống");
+	}
 }

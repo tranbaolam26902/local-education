@@ -1,107 +1,101 @@
-﻿using LocalEducation.Services.EducationRepositories.Interfaces;
+﻿using LocalEducation.Core.Dto;
+using LocalEducation.Core.Entities;
+using LocalEducation.Data.Contexts;
+using LocalEducation.Services.EducationRepositories.Interfaces;
 using LocalEducation.Services.Extensions;
 using Microsoft.EntityFrameworkCore;
-using LocalEducation.Data.Contexts;
-using LocalEducation.Core.Entities;
-using LocalEducation.Core.Dto;
 
 namespace LocalEducation.Services.EducationRepositories;
 
 public class LessonRepository : ILessonRepository
 {
-    private readonly LocalEducationDbContext _context;
+	private readonly LocalEducationDbContext _context;
 
-    public LessonRepository(LocalEducationDbContext context)
-    {
-        _context = context;
-    }
+	public LessonRepository(LocalEducationDbContext context)
+	{
+		_context = context;
+	}
 
-    #region Get data
+	#region Get data
 
-    public async Task<IList<LessonItem>> GetLessonsByCourseIdAsync(Guid courseId, bool getAll = false, bool isManager = false, CancellationToken cancellationToken = default)
-    {
-        var lessons = _context.Set<Lesson>()
-            .WhereIf(!isManager, l => l.IsPublished);
+	public async Task<IList<LessonItem>> GetLessonsByCourseIdAsync(Guid courseId, bool getAll = false, bool isManager = false, CancellationToken cancellationToken = default)
+	{
+		IQueryable<Lesson> lessons = _context.Set<Lesson>()
+			.WhereIf(!isManager, l => l.IsPublished);
 
-        if (getAll)
-        {
-            return await lessons
-                .Include(l => l.Slides)
-                .Where(l => l.CourseId == courseId)
-                .OrderBy(s => s.Index)
-                .Select(s => new LessonItem(s))
-                .ToListAsync(cancellationToken);
-        }
+		return getAll
+			? await lessons
+				.Include(l => l.Slides)
+				.Where(l => l.CourseId == courseId)
+				.OrderBy(s => s.Index)
+				.Select(s => new LessonItem(s))
+				.ToListAsync(cancellationToken)
+			: (IList<LessonItem>)await lessons
+			.Where(l => l.CourseId == courseId)
+			.OrderBy(s => s.Index)
+			.Select(s => new LessonItem(s))
+			.ToListAsync(cancellationToken);
+	}
 
-        return await lessons
-            .Where(l => l.CourseId == courseId)
-            .OrderBy(s => s.Index)
-            .Select(s => new LessonItem(s))
-            .ToListAsync(cancellationToken);
-    }
+	public Task<Lesson> GetLessonByIdAsync(Guid lessonId, bool getAll = false, CancellationToken cancellationToken = default)
+	{
+		DbSet<Lesson> lesson = _context.Set<Lesson>();
 
-    public Task<Lesson> GetLessonByIdAsync(Guid lessonId, bool getAll = false, CancellationToken cancellationToken = default)
-    {
-        var lesson = _context.Set<Lesson>();
+		return getAll
+			? lesson
+				.Include(l => l.Slides)
+				.Include(l => l.Course)
 
-        if (getAll)
-        {
-            return lesson
-                .Include(l => l.Slides)
-                .Include(l => l.Course)
+				.FirstOrDefaultAsync(s => s.Id == lessonId, cancellationToken)
+			: lesson
+			.FirstOrDefaultAsync(s => s.Id == lessonId, cancellationToken);
+	}
 
-                .FirstOrDefaultAsync(s => s.Id == lessonId, cancellationToken);
-        }
+	#endregion
 
-        return lesson
-            .FirstOrDefaultAsync(s => s.Id == lessonId, cancellationToken);
-    }
+	#region Add, Update & Delete
 
-    #endregion
+	public async Task<Lesson> AddOrUpdateLessonAsync(Lesson lesson, CancellationToken cancellationToken = default)
+	{
+		lesson.UrlSlug = lesson.Title.GenerateSlug();
 
-    #region Add, Update & Delete
+		List<Lesson> listLesson = _context.Set<Lesson>().Where(l => l.CourseId == lesson.CourseId).ToList();
 
-    public async Task<Lesson> AddOrUpdateLessonAsync(Lesson lesson, CancellationToken cancellationToken = default)
-    {
-        lesson.UrlSlug = lesson.Title.GenerateSlug();
+		// check if index = 0, then set index = max index + 1
+		if (lesson.Index == 0)
+		{
+			lesson.Index = listLesson.Count == 0 ? 1 : listLesson.Max(l => l.Index) + 1;
+		}
 
-        var listLesson = _context.Set<Lesson>().Where(l => l.CourseId == lesson.CourseId).ToList();
+		if (lesson.Id == Guid.Empty)
+		{
+			lesson.CreatedDate = DateTime.Now;
 
-        // check if index = 0, then set index = max index + 1
-        if (lesson.Index == 0)
-        {
-            lesson.Index = listLesson.Count == 0 ? 1 : listLesson.Max(l => l.Index) + 1;
-        }
+			_context.Set<Lesson>().Add(lesson);
+		}
+		else
+		{
+			_context.Set<Lesson>().Update(lesson);
+		}
 
-        if (lesson.Id == Guid.Empty)
-        {
-            lesson.CreatedDate = DateTime.Now;
+		await _context.SaveChangesAsync(cancellationToken);
 
-            _context.Set<Lesson>().Add(lesson);
-        }
-        else
-        {
-            _context.Set<Lesson>().Update(lesson);
-        }
+		return lesson;
+	}
 
-        await _context.SaveChangesAsync(cancellationToken);
+	public async Task<bool> TogglePublicStatusAsync(Guid lessonId, CancellationToken cancellationToken = default)
+	{
+		return await _context.Set<Lesson>()
+			.Where(s => s.Id == lessonId)
+			.ExecuteUpdateAsync(t => t.SetProperty(s => s.IsPublished, x => !x.IsPublished), cancellationToken) > 0;
+	}
 
-        return lesson;
-    }
+	public async Task<bool> DeleteLessonAsync(Guid lessonId, CancellationToken cancellationToken = default)
+	{
+		return await _context.Set<Lesson>()
+			.Where(s => s.Id == lessonId)
+			.ExecuteDeleteAsync(cancellationToken) > 0;
+	}
 
-    public async Task<bool> TogglePublicStatusAsync(Guid lessonId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<Lesson>()
-            .Where(s => s.Id == lessonId)
-            .ExecuteUpdateAsync(t => t.SetProperty(s => s.IsPublished, x => !x.IsPublished), cancellationToken) > 0;
-    }
-
-    public async Task<bool> DeleteLessonAsync(Guid lessonId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<Lesson>()
-            .Where(s => s.Id == lessonId)
-            .ExecuteDeleteAsync(cancellationToken) > 0;
-    }
-
-    #endregion
+	#endregion
 }

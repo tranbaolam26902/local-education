@@ -2,7 +2,7 @@
 
 public class OptionEditModel
 {
-    public int Index { get; set; }
+	public int Index { get; set; }
 
-    public string Content { get; set; }
+	public string Content { get; set; }
 }

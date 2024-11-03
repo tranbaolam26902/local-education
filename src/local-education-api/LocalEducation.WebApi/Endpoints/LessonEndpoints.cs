@@ -1,347 +1,332 @@
-﻿using System.Net;
+﻿using LocalEducation.Core.Entities;
+using LocalEducation.Services.EducationRepositories.Interfaces;
+using LocalEducation.WebApi.Filters;
+using LocalEducation.WebApi.Models;
+using LocalEducation.WebApi.Models.LessonModel;
+using LocalEducation.WebApi.Utilities;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
-using LocalEducation.WebApi.Models;
-using LocalEducation.Core.Entities;
-using LocalEducation.WebApi.Filters;
-using LocalEducation.WebApi.Utilities;
-using LocalEducation.WebApi.Models.LessonModel;
-using LocalEducation.Services.EducationRepositories.Interfaces;
+using System.Net;
 
 namespace LocalEducation.WebApi.Endpoints;
 
 public static class LessonEndpoints
 {
-    public static WebApplication MapLessonEndpoints(this WebApplication app)
-    {
-        var builder = app.MapGroup("/api/lessons");
+	public static WebApplication MapLessonEndpoints(this WebApplication app)
+	{
+		RouteGroupBuilder builder = app.MapGroup("/api/lessons");
 
-        #region Get Method
+		#region Get Method
 
-        builder.MapGet("/manager/getLessons/{courseId:guid}", GetLessonsByCourseId)
-            .WithName("GetLessonsByCourseIdAsync")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse<IList<LessonDto>>>();
+		builder.MapGet("/manager/getLessons/{courseId:guid}", GetLessonsByCourseId)
+			.WithName("GetLessonsByCourseIdAsync")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse<IList<LessonDto>>>();
 
-        builder.MapGet("/manager/{lessonId:guid}", GetLessonById)
-            .WithName("GetLessonById")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse<LessonDto>>();
+		builder.MapGet("/manager/{lessonId:guid}", GetLessonById)
+			.WithName("GetLessonById")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse<LessonDto>>();
 
-        builder.MapGet("/{lessonId:guid}", GetLessonByUser)
-            .WithName("GetLessonByUser")
-            .Produces<ApiResponse<LessonDto>>();
+		builder.MapGet("/{lessonId:guid}", GetLessonByUser)
+			.WithName("GetLessonByUser")
+			.Produces<ApiResponse<LessonDto>>();
 
-        builder.MapGet("/getLessons/{courseSlug}", GetLessonsByCourseSlug)
-            .WithName("GetLessonsByCourseSlug")
-            .Produces<ApiResponse<IList<LessonDto>>>();
+		builder.MapGet("/getLessons/{courseSlug}", GetLessonsByCourseSlug)
+			.WithName("GetLessonsByCourseSlug")
+			.Produces<ApiResponse<IList<LessonDto>>>();
 
-        builder.MapGet("/togglePublish/{lessonId:guid}", TogglePublishedStatus)
-            .WithName("TogglePublishedStatusLesson")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse>();
+		builder.MapGet("/togglePublish/{lessonId:guid}", TogglePublishedStatus)
+			.WithName("TogglePublishedStatusLesson")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse>();
 
-        #endregion
+		#endregion
 
-        #region Post Method
+		#region Post Method
 
-        builder.MapPost("/{courseId:guid}", AddLesson)
-            .WithName("AddLesson")
-            .RequireAuthorization("Manager")
-            .AddEndpointFilter<ValidatorFilter<LessonEditModel>>()
-            .Produces<ApiResponse<LessonDto>>();
+		builder.MapPost("/{courseId:guid}", AddLesson)
+			.WithName("AddLesson")
+			.RequireAuthorization("Manager")
+			.AddEndpointFilter<ValidatorFilter<LessonEditModel>>()
+			.Produces<ApiResponse<LessonDto>>();
 
-        #endregion
+		#endregion
 
-        #region Put Method
+		#region Put Method
 
-        builder.MapPut("/{lessonId:guid}", UpdateLesson)
-            .WithName("UpdateLesson")
-            .RequireAuthorization("Manager")
-            .AddEndpointFilter<ValidatorFilter<LessonEditModel>>()
-            .Produces<ApiResponse<LessonDto>>();
+		builder.MapPut("/{lessonId:guid}", UpdateLesson)
+			.WithName("UpdateLesson")
+			.RequireAuthorization("Manager")
+			.AddEndpointFilter<ValidatorFilter<LessonEditModel>>()
+			.Produces<ApiResponse<LessonDto>>();
 
-        #endregion
+		#endregion
 
-        #region Delete Method
+		#region Delete Method
 
-        builder.MapDelete("/{lessonId:guid}", DeleteLesson)
-            .WithName("DeleteLesson")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse>();
+		builder.MapDelete("/{lessonId:guid}", DeleteLesson)
+			.WithName("DeleteLesson")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse>();
 
-        #endregion
+		#endregion
 
-        return app;
-    }
+		return app;
+	}
 
-    #region Get functions
+	#region Get functions
 
-    private static async Task<IResult> GetLessonsByCourseId(
-        [FromRoute] Guid courseId,
-        [FromServices] ILessonRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var lessons = await repository.GetLessonsByCourseIdAsync(courseId, true, true);
+	private static async Task<IResult> GetLessonsByCourseId(
+		[FromRoute] Guid courseId,
+		[FromServices] ILessonRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			IList<Core.Dto.LessonItem> lessons = await repository.GetLessonsByCourseIdAsync(courseId, true, true);
 
-            if (lessons == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
-            }
+			return lessons == null
+				? Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"))
+				: Results.Ok(ApiResponse.Success(lessons));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            return Results.Ok(ApiResponse.Success(lessons));
+	private static async Task<IResult> GetLessonById(
+		[FromRoute] Guid lessonId,
+		[FromServices] ILessonRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Lesson lesson = await repository.GetLessonByIdAsync(lessonId, true);
 
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			return lesson == null
+				? Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"))
+				: Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(lesson)));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-    private static async Task<IResult> GetLessonById(
-        [FromRoute] Guid lessonId,
-        [FromServices] ILessonRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var lesson = await repository.GetLessonByIdAsync(lessonId, true);
+	private static async Task<IResult> GetLessonByUser(
+		[FromRoute] Guid lessonId,
+		[FromServices] ILessonRepository repository,
+		[FromServices] ISlideRepository slideRepository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Lesson lesson = await repository.GetLessonByIdAsync(lessonId, true);
 
-            if (lesson == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
-            }
+			if (lesson == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
+			}
 
-            return Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(lesson)));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			lesson.Slides = await slideRepository.GetListSlideByLessonIdAsync(lessonId);
 
-    private static async Task<IResult> GetLessonByUser(
-        [FromRoute] Guid lessonId,
-        [FromServices] ILessonRepository repository,
-        [FromServices] ISlideRepository slideRepository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var lesson = await repository.GetLessonByIdAsync(lessonId, true);
+			return Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(lesson)));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            if (lesson == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
-            }
+	private static async Task<IResult> GetLessonsByCourseSlug(
+		[FromRoute] string courseSlug,
+		[FromServices] ILessonRepository repository,
+		[FromServices] ICourseRepository courseRepository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Course course = await courseRepository.GetCourseBySlugAsync(courseSlug);
+			if (course == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy khóa học nào"));
+			}
+			else if (!course.IsPublished)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Khóa học chưa được xuất bản"));
+			}
 
-            lesson.Slides = await slideRepository.GetListSlideByLessonIdAsync(lessonId);
+			IList<Core.Dto.LessonItem> lessons = await repository.GetLessonsByCourseIdAsync(course.Id);
+			if (lessons == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
+			}
 
-            return Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(lesson)));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			foreach (Core.Dto.LessonItem lesson in lessons)
+			{
+				lesson.Slides = lesson.Slides.Where(s => s.IsPublished).ToList();
+				lesson.TotalSlide = lesson.Slides.Count;
+			}
 
-    private static async Task<IResult> GetLessonsByCourseSlug(
-        [FromRoute] string courseSlug,
-        [FromServices] ILessonRepository repository,
-        [FromServices] ICourseRepository courseRepository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var course = await courseRepository.GetCourseBySlugAsync(courseSlug);
-            if (course == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy khóa học nào"));
-            }
-            else if (!course.IsPublished)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Khóa học chưa được xuất bản"));
-            }
+			return Results.Ok(ApiResponse.Success(lessons));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            var lessons = await repository.GetLessonsByCourseIdAsync(course.Id);
-            if (lessons == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
-            }
+	private static async Task<IResult> TogglePublishedStatus(
+		[FromRoute] Guid lessonId,
+		[FromServices] ILessonRepository repository)
+	{
+		try
+		{
+			Lesson lesson = await repository.GetLessonByIdAsync(lessonId, true);
 
-            foreach (var lesson in lessons)
-            {
-                lesson.Slides = lesson.Slides.Where(s => s.IsPublished).ToList();
-                lesson.TotalSlide = lesson.Slides.Count;
-            }
+			return lesson == null
+				? Results.Ok(ApiResponse.Fail(
+					HttpStatusCode.NotFound,
+					"Không tìm thấy bài học nào"))
+				: await repository.TogglePublicStatusAsync(lessonId)
+				? lesson.IsPublished
+					? Results.Ok(ApiResponse.Success("Bài học đã được chuyển sang riêng tư"))
+					: Results.Ok(ApiResponse.Success("Bài học đã được chuyển sang công khai"))
+				: Results.Ok(ApiResponse.Success("Cập nhật trạng thái thất bại", HttpStatusCode.NoContent));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            return Results.Ok(ApiResponse.Success(lessons));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+	#endregion
 
-    private static async Task<IResult> TogglePublishedStatus(
-        [FromRoute] Guid lessonId,
-        [FromServices] ILessonRepository repository)
-    {
-        try
-        {
-            var lesson = await repository.GetLessonByIdAsync(lessonId, true);
+	#region Post functions
 
-            if (lesson == null)
-            {
-                return Results.Ok(ApiResponse.Fail(
-                    HttpStatusCode.NotFound,
-                    "Không tìm thấy bài học nào"));
-            }
+	private static async Task<IResult> AddLesson(
+		[FromRoute] Guid courseId,
+		[FromBody] LessonEditModel model,
+		[FromServices] ILessonRepository repository,
+		[FromServices] ICourseRepository courseRepository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Course course = await courseRepository.GetCourseByIdAsync(courseId);
 
-            if (await repository.TogglePublicStatusAsync(lessonId))
-            {
-                if (lesson.IsPublished)
-                {
-                    return Results.Ok(ApiResponse.Success("Bài học đã được chuyển sang riêng tư"));
-                }
-                return Results.Ok(ApiResponse.Success("Bài học đã được chuyển sang công khai"));
-            }
+			if (course == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Khóa học không tìm thấy hoặc đã bị xóa"));
+			}
 
-            return Results.Ok(ApiResponse.Success("Cập nhật trạng thái thất bại", HttpStatusCode.NoContent));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			IList<Core.Dto.LessonItem> listLessons = await repository.GetLessonsByCourseIdAsync(courseId, isManager: true);
 
-    #endregion
+			if (model.Index != 0)
+			{
+				foreach (Core.Dto.LessonItem item in listLessons)
+				{
+					if (item.Index == model.Index)
+					{
+						return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự bài học đã tồn tại"));
+					}
+				}
+			}
 
-    #region Post functions
+			Lesson lesson = mapper.Map<Lesson>(model);
+			lesson.CourseId = course.Id;
 
-    private static async Task<IResult> AddLesson(
-        [FromRoute] Guid courseId,
-        [FromBody] LessonEditModel model,
-        [FromServices] ILessonRepository repository,
-        [FromServices] ICourseRepository courseRepository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var course = await courseRepository.GetCourseByIdAsync(courseId);
+			Lesson result = await repository.AddOrUpdateLessonAsync(lesson);
 
-            if (course == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Khóa học không tìm thấy hoặc đã bị xóa"));
-            }
+			return Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(result)));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            var listLessons = await repository.GetLessonsByCourseIdAsync(courseId, isManager: true);
+	#endregion
 
-            if (model.Index != 0)
-            {
-                foreach (var item in listLessons)
-                {
-                    if (item.Index == model.Index)
-                    {
-                        return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự bài học đã tồn tại"));
-                    }
-                }
-            }
+	#region Put functions
 
-            var lesson = mapper.Map<Lesson>(model);
-            lesson.CourseId = course.Id;
+	private static async Task<IResult> UpdateLesson(
+		[FromRoute] Guid lessonId,
+		[FromBody] LessonEditModel model,
+		[FromServices] ILessonRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Lesson lesson = await repository.GetLessonByIdAsync(lessonId, true);
+			if (lesson == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
+			}
 
-            var result = await repository.AddOrUpdateLessonAsync(lesson);
+			IList<Core.Dto.LessonItem> listLessons = await repository.GetLessonsByCourseIdAsync(lesson.CourseId, isManager: true);
+			Core.Dto.LessonItem currentLesson = listLessons.FirstOrDefault(l => l.Id == lesson.Id);
 
-            return Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(result)));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			if (model.Index != 0)
+			{
+				if (listLessons.Any(item => item.Index == model.Index && item != currentLesson))
+				{
+					return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự bài học đã tồn tại"));
+				}
+			}
 
-    #endregion
+			mapper.Map(model, lesson);
+			lesson.TourSlug ??= "";
 
-    #region Put functions
+			await repository.AddOrUpdateLessonAsync(lesson);
 
-    private static async Task<IResult> UpdateLesson(
-        [FromRoute] Guid lessonId,
-        [FromBody] LessonEditModel model,
-        [FromServices] ILessonRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var lesson = await repository.GetLessonByIdAsync(lessonId, true);
-            if (lesson == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
-            }
+			return Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(lesson)));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            var listLessons = await repository.GetLessonsByCourseIdAsync(lesson.CourseId, isManager: true);
-            var currentLesson = listLessons.FirstOrDefault(l => l.Id == lesson.Id);
+	#endregion
 
-            if (model.Index != 0)
-            {
-                if (listLessons.Any(item => item.Index == model.Index && item != currentLesson))
-                {
-                    return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự bài học đã tồn tại"));
-                }
-            }
+	#region Delete functions
 
-            mapper.Map(model, lesson);
-            lesson.TourSlug ??= "";
+	private static async Task<IResult> DeleteLesson(
+		HttpContext context,
+		[FromRoute] Guid lessonId,
+		[FromServices] ILessonRepository repository)
+	{
+		try
+		{
+			Lesson lesson = await repository.GetLessonByIdAsync(lessonId, true);
 
-            await repository.AddOrUpdateLessonAsync(lesson);
+			if (lesson == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
+			}
 
-            return Results.Ok(ApiResponse.Success(mapper.Map<LessonDto>(lesson)));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			if (lesson.IsPublished)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Bài học đã được xuất bản"));
+			}
+			else if (lesson.Course.UserId != context.GetCurrentUser().Id)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.Forbidden,
+					"Bạn không phải tác giả khóa học này"));
+			}
 
-    #endregion
+			return await repository.DeleteLessonAsync(lessonId)
+				? Results.Ok(ApiResponse.Success("Xóa bài học thành công"))
+				: Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, "Xóa bài học thất bại"));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-    #region Delete functions
-
-    private static async Task<IResult> DeleteLesson(
-        HttpContext context,
-        [FromRoute] Guid lessonId,
-        [FromServices] ILessonRepository repository)
-    {
-        try
-        {
-            var lesson = await repository.GetLessonByIdAsync(lessonId, true);
-
-            if (lesson == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
-            }
-
-            if (lesson.IsPublished)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Bài học đã được xuất bản"));
-            }
-            else if (lesson.Course.UserId != context.GetCurrentUser().Id)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.Forbidden,
-                    "Bạn không phải tác giả khóa học này"));
-            }
-
-            return await repository.DeleteLessonAsync(lessonId)
-                ? Results.Ok(ApiResponse.Success("Xóa bài học thành công"))
-                : Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, "Xóa bài học thất bại"));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
-
-    #endregion
+	#endregion
 }

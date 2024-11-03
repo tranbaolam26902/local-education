@@ -11,14 +11,14 @@ public static class StoredExtension
 		params SqlParameter[] parameters)
 		where T : class
 	{
-		var commandText = $"EXEC {storedProcedureName} {string.Join(",", parameters.Select(p => $"@{p.ParameterName}"))}";
+		string commandText = $"EXEC {storedProcedureName} {string.Join(",", parameters.Select(p => $"@{p.ParameterName}"))}";
 		return Task.FromResult(context.Set<T>().FromSqlRaw(commandText, parameters));
 	}
 
 	public static Task<IQueryable<T>> ExecuteStoredProcedureAsync<T>(this DbContext context, string storedProcedureName)
 		where T : class
 	{
-		var commandText = $"EXEC {storedProcedureName}";
+		string commandText = $"EXEC {storedProcedureName}";
 
 		return Task.FromResult(context.Set<T>().FromSqlRaw(commandText));
 	}

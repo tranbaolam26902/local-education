@@ -23,20 +23,20 @@ public class DataSeeder : IDataSeeder
 		{
 			return;
 		}
-		var roles = AddRoles();
-		var users = AddUsers(roles);
-        ActivateCloudStorageAsync(users);
+		IList<Role> roles = AddRoles();
+		IList<User> users = AddUsers(roles);
+		ActivateCloudStorageAsync(users);
 
-    }
+	}
 
 	private IList<Role> AddRoles()
 	{
-		var roles = new List<Role>()
-		{
+		List<Role> roles =
+		[
 			new() {Id = Guid.NewGuid(), Name = "Admin"},
 			new() {Id = Guid.NewGuid(), Name = "Manager"},
 			new() {Id = Guid.NewGuid(), Name = "User"}
-		};
+		];
 
 		_dbContext.Roles.AddRange(roles);
 		_dbContext.SaveChanges();
@@ -45,8 +45,8 @@ public class DataSeeder : IDataSeeder
 
 	private IList<User> AddUsers(IList<Role> roles)
 	{
-		var users = new List<User>()
-		{
+		List<User> users =
+		[
 			new ()
 			{
 				Name = "Admin",
@@ -56,29 +56,29 @@ public class DataSeeder : IDataSeeder
 				Username = "admin",
 				CreatedDate = DateTime.Now,
 				Password = _hasher.Hash("admin123"),
-				Roles = new List<Role>()
-				{
+				Roles =
+				[
 					roles[0],
 					roles[1],
 					roles[2]
-				}
+				]
 			},
-            new ()
-            {
-                Name = "User",
-                Email = "User@gmail.com",
-                Address = "DLU",
-                Phone = "0123456789",
-                Username = "user",
-                CreatedDate = DateTime.Now,
-                Password = _hasher.Hash("user123"),
-                Roles = new List<Role>()
-                {
-                    roles[2]
-                }
+			new ()
+			{
+				Name = "User",
+				Email = "User@gmail.com",
+				Address = "DLU",
+				Phone = "0123456789",
+				Username = "user",
+				CreatedDate = DateTime.Now,
+				Password = _hasher.Hash("user123"),
+				Roles =
+				[
+					roles[2]
+				]
 
-            }
-        };
+			}
+		];
 
 		_dbContext.Users.AddRange(users);
 		_dbContext.SaveChanges();
@@ -86,48 +86,48 @@ public class DataSeeder : IDataSeeder
 		return users;
 	}
 
-    public IList<Folder> ActivateCloudStorageAsync(IList<User> users)
-    {
-        var userId = users[0].Id;
-        var folders = new List<Folder>()
-        {
-            new()
-            {
-                UserId = userId,
-                CreatedDate = DateTime.Now,
-                Name = "Hình ảnh",
+	public IList<Folder> ActivateCloudStorageAsync(IList<User> users)
+	{
+		Guid userId = users[0].Id;
+		List<Folder> folders =
+		[
+			new()
+			{
+				UserId = userId,
+				CreatedDate = DateTime.Now,
+				Name = "Hình ảnh",
 				Slug = "images",
-                IsDeleted = false
-            },
-            new()
-            {
-                UserId = userId,
-                CreatedDate = DateTime.Now,
-                Name = "Âm thanh",
+				IsDeleted = false
+			},
+			new()
+			{
+				UserId = userId,
+				CreatedDate = DateTime.Now,
+				Name = "Âm thanh",
 				Slug = "audios",
-                IsDeleted = false
-            },
-            new()
-            {
-                UserId = userId,
-                CreatedDate = DateTime.Now,
-                Name = "Video",
+				IsDeleted = false
+			},
+			new()
+			{
+				UserId = userId,
+				CreatedDate = DateTime.Now,
+				Name = "Video",
 				Slug = "videos",
-                IsDeleted = false
-            },
-            new()
-            {
-                UserId = userId,
-                CreatedDate = DateTime.Now,
-                Name = "Khác",
+				IsDeleted = false
+			},
+			new()
+			{
+				UserId = userId,
+				CreatedDate = DateTime.Now,
+				Name = "Khác",
 				Slug = "others",
-                IsDeleted = false
-            }
-        };
+				IsDeleted = false
+			}
+		];
 
-        _dbContext.Folders.AddRange(folders);
-        _dbContext.SaveChanges();
+		_dbContext.Folders.AddRange(folders);
+		_dbContext.SaveChanges();
 
 		return folders;
-    }
+	}
 }

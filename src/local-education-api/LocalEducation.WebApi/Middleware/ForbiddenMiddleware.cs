@@ -23,15 +23,15 @@ public class ForbiddenMiddleware
 			context.Response.StatusCode = StatusCodes.Status403Forbidden;
 
 			// Your custom error message
-			var statusCode = (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), StatusCodes.Status403Forbidden.ToString());
-			var apiRes = ApiResponse.Fail(statusCode, "Forbidden");
+			HttpStatusCode statusCode = (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), StatusCodes.Status403Forbidden.ToString());
+			ApiResponse apiRes = ApiResponse.Fail(statusCode, "Forbidden");
 
-			var options = new JsonSerializerOptions
+			JsonSerializerOptions options = new()
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			};
 
-			var json = JsonSerializer.Serialize(apiRes, options);
+			string json = JsonSerializer.Serialize(apiRes, options);
 
 			await context.Response.WriteAsync(json);
 		}

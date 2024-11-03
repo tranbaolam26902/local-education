@@ -16,7 +16,7 @@ public interface IUserRepository
 	Task<User> GetUserByIdAsync(Guid userId, bool getFull = false, CancellationToken cancellationToken = default);
 
 	Task<bool> ChangePasswordAsync(User user, string oldPassword, string newPassword, CancellationToken cancellationToken = default);
-	
+
 	Task<User> Register(User user,
 		CancellationToken cancellationToken = default);
 
@@ -26,7 +26,7 @@ public interface IUserRepository
 	Task<bool> IsUserExistedAsync(string userName, CancellationToken cancellationToken = default);
 
 	Task<IList<Role>> GetRolesAsync(CancellationToken cancellationToken = default);
-	
+
 	Task<User> SetUserRolesAsync(Guid userId, IList<Guid> roles, CancellationToken cancellationToken = default);
 
 	Task<UserLogin> SetRefreshTokenAsync(Guid userId, UserLogin refreshToken, CancellationToken cancellationToken = default);

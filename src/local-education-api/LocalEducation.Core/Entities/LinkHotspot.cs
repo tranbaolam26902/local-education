@@ -8,9 +8,9 @@ public class LinkHotspot : IEntity
 
 	public Guid SceneId { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+	public DateTime CreatedDate { get; set; }
 
-    public int SceneIndex { get; set; }
+	public int SceneIndex { get; set; }
 
 	public Guid LinkId { get; set; }
 
@@ -30,7 +30,7 @@ public class LinkHotspot : IEntity
 
 	public LinkHotspot()
 	{
-		
+
 	}
 
 	public LinkHotspot(Guid id, Guid sceneId, int sceneIndex, Guid linkId, string title, float x, float y, float z)

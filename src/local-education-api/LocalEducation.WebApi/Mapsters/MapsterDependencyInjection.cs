@@ -8,7 +8,7 @@ public static class MapsterDependencyInjection
 	public static WebApplicationBuilder ConfigureMapster(
 		this WebApplicationBuilder builder)
 	{
-		var config = TypeAdapterConfig.GlobalSettings;
+		TypeAdapterConfig config = TypeAdapterConfig.GlobalSettings;
 
 		config.Scan(typeof(MapsterConfiguration).Assembly);
 

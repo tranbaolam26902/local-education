@@ -12,18 +12,18 @@ public class PasswordHasher : IPasswordHasher
 
 	public string Hash(string password)
 	{
-		var salt = RandomNumberGenerator.GetBytes(SaltSize);
-		var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName, KeySize);
+		byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
+		byte[] hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName, KeySize);
 
 		return string.Join(Delimiter, Convert.ToBase64String(salt), Convert.ToBase64String(hash));
 	}
 
 	public bool VerifyPassword(string password, string inputPassword)
 	{
-		var element = password.Split(Delimiter);
-		var salt = Convert.FromBase64String(element[0]);
-		var hash = Convert.FromBase64String(element[1]);
-		var hashInput = Rfc2898DeriveBytes.Pbkdf2(inputPassword, salt, Iterations, HashAlgorithmName, KeySize);
+		string[] element = password.Split(Delimiter);
+		byte[] salt = Convert.FromBase64String(element[0]);
+		byte[] hash = Convert.FromBase64String(element[1]);
+		byte[] hashInput = Rfc2898DeriveBytes.Pbkdf2(inputPassword, salt, Iterations, HashAlgorithmName, KeySize);
 
 		return CryptographicOperations.FixedTimeEquals(hash, hashInput);
 	}

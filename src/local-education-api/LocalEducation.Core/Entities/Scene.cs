@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using LocalEducation.Core.Contracts;
+﻿using LocalEducation.Core.Contracts;
 
 namespace LocalEducation.Core.Entities;
 
@@ -14,9 +12,9 @@ public class Scene : IEntity
 
 	public string Title { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+	public DateTime CreatedDate { get; set; }
 
-    public float X { get; set; }
+	public float X { get; set; }
 
 	public float Y { get; set; }
 
@@ -30,8 +28,8 @@ public class Scene : IEntity
 	// ======================================================
 	// Navigation properties
 	// ======================================================
-	
-    public Audio Audio { get; set; }
+
+	public Audio Audio { get; set; }
 
 	public IList<LinkHotspot> LinkHotspots { get; set; }
 
@@ -41,7 +39,7 @@ public class Scene : IEntity
 
 	public Scene()
 	{
-		
+
 	}
 
 	public Scene(Guid id, Guid tourId, int index, string title, float x, float y, float z, string urlPreview, string urlImage)
@@ -60,19 +58,19 @@ public class Scene : IEntity
 
 public class Audio
 {
-    public Guid Id { get; set; }
+	public Guid Id { get; set; }
 
-    public string Path { get; set; }
+	public string Path { get; set; }
 
 	public string ThumbnailPath { get; set; }
 
-    public bool AutoPlay { get; set; }
+	public bool AutoPlay { get; set; }
 
-    public bool LoopAudio { get; set; }
+	public bool LoopAudio { get; set; }
 
-    // ======================================================
-    // Navigation properties
-    // ======================================================
+	// ======================================================
+	// Navigation properties
+	// ======================================================
 
-    public Scene Scene { get; set; }
+	public Scene Scene { get; set; }
 }

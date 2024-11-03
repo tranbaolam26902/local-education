@@ -6,37 +6,37 @@ namespace LocalEducation.Data.Mappings;
 
 public class ProgressMap : IEntityTypeConfiguration<Progress>
 {
-    public void Configure(EntityTypeBuilder<Progress> builder)
-    {
-        builder.ToTable("Progresses");
+	public void Configure(EntityTypeBuilder<Progress> builder)
+	{
+		builder.ToTable("Progresses");
 
-        builder.HasKey(x => x.Id);
+		builder.HasKey(x => x.Id);
 
-        #region Propetites
+		#region Propetites
 
-        builder.Property(x => x.Slides)
-            .HasDefaultValue("");
+		builder.Property(x => x.Slides)
+			.HasDefaultValue("");
 
-        builder.Property(c => c.CreatedDate)
-            .IsRequired()
-            .HasColumnType("datetime");
+		builder.Property(c => c.CreatedDate)
+			.IsRequired()
+			.HasColumnType("datetime");
 
-        #endregion
+		#endregion
 
-        #region Relationships
+		#region Relationships
 
-        builder.HasOne(o => o.User)
-            .WithMany(d => d.Progresses)
-            .HasForeignKey(d => d.UserId)
-            .HasConstraintName("FK_Courses_Progresses")
-            .OnDelete(DeleteBehavior.Cascade);
+		builder.HasOne(o => o.User)
+			.WithMany(d => d.Progresses)
+			.HasForeignKey(d => d.UserId)
+			.HasConstraintName("FK_Courses_Progresses")
+			.OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(o => o.Course)
-            .WithMany(d => d.Progresses)
-            .HasForeignKey(d => d.CourseId)
-            .HasConstraintName("FK_Users_Progresses")
-            .OnDelete(DeleteBehavior.Cascade);
+		builder.HasOne(o => o.Course)
+			.WithMany(d => d.Progresses)
+			.HasForeignKey(d => d.CourseId)
+			.HasConstraintName("FK_Users_Progresses")
+			.OnDelete(DeleteBehavior.Cascade);
 
-        #endregion
-    }
+		#endregion
+	}
 }

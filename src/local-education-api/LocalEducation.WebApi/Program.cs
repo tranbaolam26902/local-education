@@ -2,50 +2,50 @@ using LocalEducation.WebApi.Endpoints;
 using LocalEducation.WebApi.Extensions;
 using LocalEducation.WebApi.Mapsters;
 using LocalEducation.WebApi.Validations;
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 {
-    builder
-        .ConfigureCors()
-        .ConfigureServices()
-        .ConfigureSwaggerOpenApi()
-        .ConfigureFileUpload()
-        .ConfigureConfigureIdentity()
-        .ConfigureMapster()
-        .ConfigureFluentValidation()
-        .ConfigureAuthentication();
+	builder
+		.ConfigureCors()
+		.ConfigureServices()
+		.ConfigureSwaggerOpenApi()
+		.ConfigureFileUpload()
+		.ConfigureConfigureIdentity()
+		.ConfigureMapster()
+		.ConfigureFluentValidation()
+		.ConfigureAuthentication();
 }
 
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 {
-    app.SetupRequestPipeline();
+	app.SetupRequestPipeline();
 
-    app.SetupContext();
+	app.SetupContext();
 
-    app.SetupMiddleware();
+	app.SetupMiddleware();
 
-    // use seeder
-    try
-    {
-        app.UseDataSeeder();
-    }
-    finally
-    {
-        app.SetupLocalMedia();
-    }
+	// use seeder
+	try
+	{
+		app.UseDataSeeder();
+	}
+	finally
+	{
+		app.SetupLocalMedia();
+	}
 
-    // Config endpoint;
-    app.MapUserEndpoints()
-        .MapTourEndpoints()
-        .MapSceneEndpoints()
-        .MapFolderEndpoints()
-        .MapFileEndpoints()
-        .MapCourseEndpoints()
-        .MapLessonEndpoints()
-        .MapSlideEndpoints()
-        .MapProgressEndpoints()
-        .MapDashboardEndpoints()
-        .MapQuestionEndpoint();
+	// Config endpoint;
+	app.MapUserEndpoints()
+		.MapTourEndpoints()
+		.MapSceneEndpoints()
+		.MapFolderEndpoints()
+		.MapFileEndpoints()
+		.MapCourseEndpoints()
+		.MapLessonEndpoints()
+		.MapSlideEndpoints()
+		.MapProgressEndpoints()
+		.MapDashboardEndpoints()
+		.MapQuestionEndpoint();
 
-    app.Run();
+	app.Run();
 }

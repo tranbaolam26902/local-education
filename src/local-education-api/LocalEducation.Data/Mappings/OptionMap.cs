@@ -6,33 +6,33 @@ namespace LocalEducation.Data.Mappings;
 
 public class OptionMap : IEntityTypeConfiguration<Option>
 {
-    public void Configure(EntityTypeBuilder<Option> builder)
-    {
-        builder.ToTable("Options");
+	public void Configure(EntityTypeBuilder<Option> builder)
+	{
+		builder.ToTable("Options");
 
-        builder.HasKey(o => o.Id);
+		builder.HasKey(o => o.Id);
 
-        #region Properties config
+		#region Properties config
 
-        builder.Property(o => o.Content)
-            .IsRequired()
-            .HasMaxLength(1024);
+		builder.Property(o => o.Content)
+			.IsRequired()
+			.HasMaxLength(1024);
 
-        builder.Property(o => o.Index)
-            .IsRequired();
+		builder.Property(o => o.Index)
+			.IsRequired();
 
-        builder.Property(o => o.QuestionId)
-            .IsRequired();
+		builder.Property(o => o.QuestionId)
+			.IsRequired();
 
-        #endregion
+		#endregion
 
-        #region Relationships
+		#region Relationships
 
-        builder.HasOne(o => o.Question)
-            .WithMany(q => q.Options)
-            .HasForeignKey(o => o.QuestionId)
-            .OnDelete(DeleteBehavior.Cascade);
+		builder.HasOne(o => o.Question)
+			.WithMany(q => q.Options)
+			.HasForeignKey(o => o.QuestionId)
+			.OnDelete(DeleteBehavior.Cascade);
 
-        #endregion
-    }
+		#endregion
+	}
 }

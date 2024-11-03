@@ -1,7 +1,7 @@
 ﻿using LocalEducation.Core.Collections;
 using LocalEducation.Core.Contracts;
-using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Dynamic.Core;
 
 namespace LocalEducation.Services.Extensions;
 
@@ -11,11 +11,11 @@ public static class PagedListExtensions
 		this IPagingParams pagingParams,
 		string defaultColumn = "Id")
 	{
-		var column = string.IsNullOrWhiteSpace(pagingParams.SortColumn)
+		string column = string.IsNullOrWhiteSpace(pagingParams.SortColumn)
 			? defaultColumn
 			: pagingParams.SortColumn;
 
-		var order = "ASC".Equals(
+		string order = "ASC".Equals(
 			pagingParams.SortOrder, StringComparison.OrdinalIgnoreCase)
 			? pagingParams.SortOrder
 			: "DESC";
@@ -28,12 +28,12 @@ public static class PagedListExtensions
 		IPagingParams pagingParams,
 		CancellationToken cancellationToken = default)
 	{
-		var totalCount = await source.CountAsync(cancellationToken);
+		int totalCount = await source.CountAsync(cancellationToken);
 
-		var pageNumber = pagingParams.PageNumber ?? 1;
-		var pageSize = pagingParams.PageSize ?? 10;
+		int pageNumber = pagingParams.PageNumber ?? 1;
+		int pageSize = pagingParams.PageSize ?? 10;
 
-		var items = await source
+		List<T> items = await source
 			.OrderBy(pagingParams.GetOrderExpression())
 			.Skip((pageNumber - 1) * pageSize)
 			.Take(pageSize)
@@ -51,8 +51,8 @@ public static class PagedListExtensions
 		IPagingParams pagingParams,
 		int totalCount)
 	{
-		var pageNumber = pagingParams.PageNumber ?? 1;
-		var pageSize = pagingParams.PageSize ?? 10;
+		int pageNumber = pagingParams.PageNumber ?? 1;
+		int pageSize = pagingParams.PageSize ?? 10;
 
 		return Task.FromResult<IPagedList<T>>(new PagedList<T>(
 			source,
@@ -69,8 +69,8 @@ public static class PagedListExtensions
 		string sortOrder = "DESC",
 		CancellationToken cancellationToken = default)
 	{
-		var totalCount = await source.CountAsync(cancellationToken);
-		var items = await source.OrderBy($"{sortColumn} {sortOrder}")
+		int totalCount = await source.CountAsync(cancellationToken);
+		List<T> items = await source.OrderBy($"{sortColumn} {sortOrder}")
 			.Skip((pageNumber - 1) * pageSize)
 			.Take(pageSize)
 			.ToListAsync(cancellationToken);

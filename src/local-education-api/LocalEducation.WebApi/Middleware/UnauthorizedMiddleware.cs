@@ -23,15 +23,15 @@ public class UnauthorizedMiddleware
 			context.Response.StatusCode = StatusCodes.Status401Unauthorized;
 
 			// Your custom error message
-			var statusCode = (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), StatusCodes.Status401Unauthorized.ToString());
-			var apiRes = ApiResponse.Fail(statusCode, "Unauthorized");
+			HttpStatusCode statusCode = (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), StatusCodes.Status401Unauthorized.ToString());
+			ApiResponse apiRes = ApiResponse.Fail(statusCode, "Unauthorized");
 
-			var options = new JsonSerializerOptions
+			JsonSerializerOptions options = new()
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			};
 
-			var json = JsonSerializer.Serialize(apiRes, options);
+			string json = JsonSerializer.Serialize(apiRes, options);
 
 			await context.Response.WriteAsync(json);
 		}

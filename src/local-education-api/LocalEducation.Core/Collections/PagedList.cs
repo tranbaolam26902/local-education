@@ -1,11 +1,11 @@
-﻿using System.Collections;
-using LocalEducation.Core.Contracts;
+﻿using LocalEducation.Core.Contracts;
+using System.Collections;
 
 namespace LocalEducation.Core.Collections;
 
 public class PagedList<T> : PagingMetadata, IPagedList<T>
 {
-	private readonly List<T> _subset = new();
+	private readonly List<T> _subset = [];
 
 	public PagedList(IList<T> items, int pageNumber, int pageSize, int totalCount)
 		: base(pageNumber, pageSize, totalCount)

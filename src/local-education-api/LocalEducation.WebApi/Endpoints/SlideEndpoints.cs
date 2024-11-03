@@ -1,321 +1,297 @@
-﻿using LocalEducation.Services.EducationRepositories.Interfaces;
-using LocalEducation.WebApi.Models.SlideModel;
+﻿using LocalEducation.Core.Entities;
+using LocalEducation.Services.EducationRepositories.Interfaces;
 using LocalEducation.WebApi.Filters;
-using LocalEducation.Core.Entities;
 using LocalEducation.WebApi.Models;
-using Microsoft.AspNetCore.Mvc;
-using MapsterMapper;
-using System.Net;
+using LocalEducation.WebApi.Models.SlideModel;
 using LocalEducation.WebApi.Utilities;
+using MapsterMapper;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace LocalEducation.WebApi.Endpoints;
 
 public static class SlideEndpoints
 {
-    public static WebApplication MapSlideEndpoints(this WebApplication app)
-    {
-        var builder = app.MapGroup("/api/slides");
+	public static WebApplication MapSlideEndpoints(this WebApplication app)
+	{
+		RouteGroupBuilder builder = app.MapGroup("/api/slides");
 
-        #region Get Method
+		#region Get Method
 
-        builder.MapGet("/{slideId:guid}", GetSlideById)
-            .WithName("GetSlideById")
-            .Produces<ApiResponse<SlideDto>>();
+		builder.MapGet("/{slideId:guid}", GetSlideById)
+			.WithName("GetSlideById")
+			.Produces<ApiResponse<SlideDto>>();
 
-        builder.MapGet("/list/{lessonId:guid}", GetSlidesByLessonId)
-            .WithName("GetSlidesByLessonId")
-            .Produces<ApiResponse<SlideDto>>();
+		builder.MapGet("/list/{lessonId:guid}", GetSlidesByLessonId)
+			.WithName("GetSlidesByLessonId")
+			.Produces<ApiResponse<SlideDto>>();
 
-        builder.MapGet("/manager/{slideId:guid}", GetSlideByManager)
-            .WithName("GetSlideByManager")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse<SlideDto>>();
+		builder.MapGet("/manager/{slideId:guid}", GetSlideByManager)
+			.WithName("GetSlideByManager")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse<SlideDto>>();
 
-        builder.MapGet("/togglePublish/{slideId:guid}", TogglePublishedStatus)
-            .WithName("TogglePublishedStatusSlide")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse>();
+		builder.MapGet("/togglePublish/{slideId:guid}", TogglePublishedStatus)
+			.WithName("TogglePublishedStatusSlide")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse>();
 
-        #endregion
+		#endregion
 
-        #region Post Method
+		#region Post Method
 
-        builder.MapPost("/{lessonId:guid}", AddSlide)
-            .WithName("AddSlide")
-            .RequireAuthorization("Manager")
-            .AddEndpointFilter<ValidatorFilter<SlideEditModel>>()
-            .Produces<ApiResponse<SlideDto>>();
+		builder.MapPost("/{lessonId:guid}", AddSlide)
+			.WithName("AddSlide")
+			.RequireAuthorization("Manager")
+			.AddEndpointFilter<ValidatorFilter<SlideEditModel>>()
+			.Produces<ApiResponse<SlideDto>>();
 
-        #endregion
+		#endregion
 
-        #region Put Method
-        builder.MapPut("/{slideId:guid}", UpdateSlide)
-            .WithName("UpdateSlide")
-            .RequireAuthorization("Manager")
-            .AddEndpointFilter<ValidatorFilter<SlideEditModel>>()
-            .Produces<ApiResponse<SlideDto>>();
+		#region Put Method
+		builder.MapPut("/{slideId:guid}", UpdateSlide)
+			.WithName("UpdateSlide")
+			.RequireAuthorization("Manager")
+			.AddEndpointFilter<ValidatorFilter<SlideEditModel>>()
+			.Produces<ApiResponse<SlideDto>>();
 
-        #endregion
+		#endregion
 
-        #region Delete Method
-        builder.MapDelete("/{slideId:guid}", DeleteSlide)
-            .WithName("DeleteSlide")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse>();
+		#region Delete Method
+		builder.MapDelete("/{slideId:guid}", DeleteSlide)
+			.WithName("DeleteSlide")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse>();
 
-        #endregion
+		#endregion
 
-        return app;
-    }
+		return app;
+	}
 
-    #region Get functions
+	#region Get functions
 
-    private static async Task<IResult> GetSlidesByLessonId(
-        HttpContext context,
-        [FromRoute] Guid lessonId,
-        [FromServices] ISlideRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var user = context.GetCurrentUser();
-
-
-            IList<Slide> slides;
-
-            if (user != null && user.Roles.Any(s => s.Name.ToLower() == "Manager".ToLower()))
-            {
-                slides = await repository.GetListSlideByLessonIdAsync(lessonId, true);
-            }
-            else
-            {
-                slides = await repository.GetListSlideByLessonIdAsync(lessonId);
-            }
+	private static async Task<IResult> GetSlidesByLessonId(
+		HttpContext context,
+		[FromRoute] Guid lessonId,
+		[FromServices] ISlideRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Models.UserModel.UserDto user = context.GetCurrentUser();
 
 
-            var result = mapper.Map<IList<SlideDto>>(slides);
+			IList<Slide> slides = user != null && user.Roles.Any(s => s.Name.ToLower() == "Manager".ToLower())
+				? await repository.GetListSlideByLessonIdAsync(lessonId, true)
+				: await repository.GetListSlideByLessonIdAsync(lessonId);
+			IList<SlideDto> result = mapper.Map<IList<SlideDto>>(slides);
 
-            return Results.Ok(ApiResponse.Success(result));
+			return Results.Ok(ApiResponse.Success(result));
 
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-    private static async Task<IResult> GetSlideById(
-        [FromRoute] Guid slideId,
-        [FromServices] ISlideRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var slide = await repository.GetSlideByIdAsync(slideId);
-            if (slide == null)
-            {
-                return Results.Ok(
-                    ApiResponse.Fail(HttpStatusCode.NotFound,
-                        "Bài học không tồn tại."));
-            }
-            else if (!slide.IsPublished)
-            {
-                return Results.Ok(
-                    ApiResponse.Fail(HttpStatusCode.NotFound,
-                        "Bài học chưa được xuất bản."));
-            }
+	private static async Task<IResult> GetSlideById(
+		[FromRoute] Guid slideId,
+		[FromServices] ISlideRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Slide slide = await repository.GetSlideByIdAsync(slideId);
+			if (slide == null)
+			{
+				return Results.Ok(
+					ApiResponse.Fail(HttpStatusCode.NotFound,
+						"Bài học không tồn tại."));
+			}
+			else if (!slide.IsPublished)
+			{
+				return Results.Ok(
+					ApiResponse.Fail(HttpStatusCode.NotFound,
+						"Bài học chưa được xuất bản."));
+			}
 
-            var result = mapper.Map<SlideDto>(slide);
+			SlideDto result = mapper.Map<SlideDto>(slide);
 
-            return Results.Ok(ApiResponse.Success(result));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			return Results.Ok(ApiResponse.Success(result));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-    private static async Task<IResult> GetSlideByManager(
-        [FromRoute] Guid slideId,
-        [FromServices] ISlideRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var slide = await repository.GetSlideByIdAsync(slideId);
-            if (slide == null)
-            {
-                return Results.Ok(
-                    ApiResponse.Fail(HttpStatusCode.NotFound,
-                        "Bài học không tồn tại."));
-            }
+	private static async Task<IResult> GetSlideByManager(
+		[FromRoute] Guid slideId,
+		[FromServices] ISlideRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Slide slide = await repository.GetSlideByIdAsync(slideId);
+			if (slide == null)
+			{
+				return Results.Ok(
+					ApiResponse.Fail(HttpStatusCode.NotFound,
+						"Bài học không tồn tại."));
+			}
 
-            var result = mapper.Map<SlideDto>(slide);
+			SlideDto result = mapper.Map<SlideDto>(slide);
 
-            return Results.Ok(ApiResponse.Success(result));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			return Results.Ok(ApiResponse.Success(result));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-    private static async Task<IResult> TogglePublishedStatus(
-        [FromRoute] Guid slideId,
-        [FromServices] ISlideRepository repository)
-    {
-        try
-        {
-            var slide = await repository.GetSlideByIdAsync(slideId);
+	private static async Task<IResult> TogglePublishedStatus(
+		[FromRoute] Guid slideId,
+		[FromServices] ISlideRepository repository)
+	{
+		try
+		{
+			Slide slide = await repository.GetSlideByIdAsync(slideId);
 
-            if (slide == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound,
-                    "Nội dung bài học không tồn tại"));
+			return slide == null
+				? Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound,
+					"Nội dung bài học không tồn tại"))
+				: await repository.TogglePublicStatusAsync(slideId)
+				? slide.IsPublished
+					? Results.Ok(ApiResponse.Success("Nội dung bài học đã được chuyển sang riêng tư"))
+					: Results.Ok(ApiResponse.Success("Nội dung bài học đã được chuyển sang công khai"))
+				: Results.Ok(ApiResponse.Success("Cập nhật trang thái thất bại", HttpStatusCode.NoContent));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            }
+	#endregion
 
-            if (await repository.TogglePublicStatusAsync(slideId))
-            {
-                if (slide.IsPublished)
-                {
-                    return Results.Ok(ApiResponse.Success("Nội dung bài học đã được chuyển sang riêng tư"));
-                }
-                return Results.Ok(ApiResponse.Success("Nội dung bài học đã được chuyển sang công khai"));
-            }
+	#region Post functions
 
-            return Results.Ok(ApiResponse.Success("Cập nhật trang thái thất bại", HttpStatusCode.NoContent));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+	private static async Task<IResult> AddSlide(
+		[FromRoute] Guid lessonId,
+		[FromBody] SlideEditModel model,
+		[FromServices] ISlideRepository repository,
+		[FromServices] ILessonRepository lessonRepository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Lesson lesson = await lessonRepository.GetLessonByIdAsync(lessonId, true);
+			if (lesson == null)
+			{
+				return Results.Ok(
+					ApiResponse.Fail(HttpStatusCode.NotFound,
+						"Bài học không tồn tại."));
+			}
 
-    #endregion
+			IList<Slide> listSlides = await repository.GetListSlideByLessonIdAsync(lessonId, true);
 
-    #region Post functions
+			if (model.Index != 0)
+			{
+				foreach (Slide item in listSlides)
+				{
+					if (item.Index == model.Index)
+					{
+						return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự nội dung bài học đã tồn tại"));
+					}
+				}
+			}
 
-    private static async Task<IResult> AddSlide(
-        [FromRoute] Guid lessonId,
-        [FromBody] SlideEditModel model,
-        [FromServices] ISlideRepository repository,
-        [FromServices] ILessonRepository lessonRepository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var lesson = await lessonRepository.GetLessonByIdAsync(lessonId, true);
-            if (lesson == null)
-            {
-                return Results.Ok(
-                    ApiResponse.Fail(HttpStatusCode.NotFound,
-                        "Bài học không tồn tại."));
-            }
+			Slide slide = mapper.Map<Slide>(model);
 
-            var listSlides = await repository.GetListSlideByLessonIdAsync(lessonId, true);
+			slide.LessonId = lesson.Id;
 
-            if (model.Index != 0)
-            {
-                foreach (var item in listSlides)
-                {
-                    if (item.Index == model.Index)
-                    {
-                        return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự nội dung bài học đã tồn tại"));
-                    }
-                }
-            }
+			await repository.AddOrUpdateSlideAsync(slide);
 
-            var slide = mapper.Map<Slide>(model);
+			SlideDto result = mapper.Map<SlideDto>(slide);
 
-            slide.LessonId = lesson.Id;
+			return Results.Ok(ApiResponse.Success(result));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            await repository.AddOrUpdateSlideAsync(slide);
+	#endregion
 
-            var result = mapper.Map<SlideDto>(slide);
+	#region Put functions
 
-            return Results.Ok(ApiResponse.Success(result));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+	private static async Task<IResult> UpdateSlide(
+		[FromRoute] Guid slideId,
+		[FromBody] SlideEditModel model,
+		[FromServices] ISlideRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Slide slide = await repository.GetSlideByIdAsync(slideId);
+			if (slide == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
+			}
 
-    #endregion
+			IList<Slide> listSlides = await repository.GetListSlideByLessonIdAsync(slide.LessonId, true);
+			Slide currentSlide = listSlides.FirstOrDefault(l => l.Id == slide.Id);
 
-    #region Put functions
-
-    private static async Task<IResult> UpdateSlide(
-        [FromRoute] Guid slideId,
-        [FromBody] SlideEditModel model,
-        [FromServices] ISlideRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var slide = await repository.GetSlideByIdAsync(slideId);
-            if (slide == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Không tìm thấy bài học nào"));
-            }
-
-            var listSlides = await repository.GetListSlideByLessonIdAsync(slide.LessonId, true);
-            var currentSlide = listSlides.FirstOrDefault(l => l.Id == slide.Id);
-
-            if (model.Index != 0)
-            {
-                if (listSlides.Any(item => item.Index == model.Index && item != currentSlide))
-                {
-                    return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự nội dung bài học đã tồn tại"));
-                }
-            }
+			if (model.Index != 0)
+			{
+				if (listSlides.Any(item => item.Index == model.Index && item != currentSlide))
+				{
+					return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Thứ tự nội dung bài học đã tồn tại"));
+				}
+			}
 
 
-            slide = mapper.Map(model, slide);
+			slide = mapper.Map(model, slide);
 
-            await repository.AddOrUpdateSlideAsync(slide);
+			await repository.AddOrUpdateSlideAsync(slide);
 
-            return Results.Ok(ApiResponse.Success(mapper.Map<SlideDto>(slide)));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
+			return Results.Ok(ApiResponse.Success(mapper.Map<SlideDto>(slide)));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-    #endregion
+	#endregion
 
-    #region Delete functions
+	#region Delete functions
 
-    private static async Task<IResult> DeleteSlide(
-        [FromRoute] Guid slideId,
-        [FromServices] ISlideRepository repository)
-    {
-        try
-        {
-            var slide = await repository.GetSlideByIdAsync(slideId);
-            if (slide == null)
-            {
-                return Results.Ok(
-                    ApiResponse.Fail(HttpStatusCode.NotFound,
-                        "Slide không tồn tại."));
-            }
+	private static async Task<IResult> DeleteSlide(
+		[FromRoute] Guid slideId,
+		[FromServices] ISlideRepository repository)
+	{
+		try
+		{
+			Slide slide = await repository.GetSlideByIdAsync(slideId);
+			return slide == null
+				? Results.Ok(
+					ApiResponse.Fail(HttpStatusCode.NotFound,
+						"Slide không tồn tại."))
+				: slide.IsPublished
+				? Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Nội dung bài học đã được xuất bản"))
+				: await repository.DeleteSlideAsync(slide.Id) ?
+				Results.Ok(ApiResponse.Success("Xóa nội dung thành công")) :
+				Results.Ok(ApiResponse.Success("Xóa nội dung bài học thất bại", HttpStatusCode.NoContent));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
+		}
+	}
 
-            if (slide.IsPublished)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotAcceptable, "Nội dung bài học đã được xuất bản"));
-            }
-
-            return await repository.DeleteSlideAsync(slide.Id) ?
-                Results.Ok(ApiResponse.Success("Xóa nội dung thành công")) :
-                Results.Ok(ApiResponse.Success("Xóa nội dung bài học thất bại", HttpStatusCode.NoContent));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, e.Message));
-        }
-    }
-
-    #endregion
+	#endregion
 }

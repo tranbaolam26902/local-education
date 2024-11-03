@@ -49,6 +49,6 @@ public class TourMap : IEntityTypeConfiguration<Tour>
 
 		builder.HasOne(t => t.Atlas)
 			.WithOne(a => a.Tour)
-            .HasForeignKey<Atlas>(t => t.Id);
+			.HasForeignKey<Atlas>(t => t.Id);
 	}
 }

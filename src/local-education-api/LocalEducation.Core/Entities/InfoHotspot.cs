@@ -6,15 +6,15 @@ public class InfoHotspot : IEntity
 {
 	public Guid Id { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+	public DateTime CreatedDate { get; set; }
 
-    public Guid SceneId { get; set; }
+	public Guid SceneId { get; set; }
 
 	public Guid LessonId { get; set; }
 
-    public Guid InfoId { get; set; }
+	public Guid InfoId { get; set; }
 
-    public string Title { get; set; }
+	public string Title { get; set; }
 
 	public string Description { get; set; }
 
@@ -36,7 +36,7 @@ public class InfoHotspot : IEntity
 
 	public InfoHotspot()
 	{
-		
+
 	}
 
 	public InfoHotspot(Guid id, Guid sceneId, string title, string description, string address, string thumbnailPath, float x, float y, float z)
@@ -46,7 +46,7 @@ public class InfoHotspot : IEntity
 		Title = title;
 		Description = description;
 		Address = address;
-        ThumbnailPath = thumbnailPath;
+		ThumbnailPath = thumbnailPath;
 		X = x;
 		Y = y;
 		Z = z;

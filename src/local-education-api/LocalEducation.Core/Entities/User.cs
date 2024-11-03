@@ -38,7 +38,7 @@ public class User : IEntity
 
 	public IList<Tour> Tours { get; set; }
 
-    public IList<Progress> Progresses { get; set; }
+	public IList<Progress> Progresses { get; set; }
 
 	public IList<ResultDetail> ResultDetails { get; set; }
 
@@ -58,9 +58,9 @@ public class UserLogin : IEntity
 {
 	public Guid Id { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+	public DateTime CreatedDate { get; set; }
 
-    public Guid UserId { get; set; }
+	public Guid UserId { get; set; }
 
 	public string UserAgent { get; set; }
 

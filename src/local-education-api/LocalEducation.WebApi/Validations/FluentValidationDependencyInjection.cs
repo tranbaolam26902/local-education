@@ -1,6 +1,6 @@
-﻿using FluentValidation.AspNetCore;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 using System.Reflection;
-using FluentValidation;
 
 namespace LocalEducation.WebApi.Validations;
 
