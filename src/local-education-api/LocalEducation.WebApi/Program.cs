@@ -2,18 +2,23 @@ using LocalEducation.WebApi.Endpoints;
 using LocalEducation.WebApi.Extensions;
 using LocalEducation.WebApi.Mapsters;
 using LocalEducation.WebApi.Validations;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-	builder
-		.ConfigureCors()
-		.ConfigureServices()
-		.ConfigureSwaggerOpenApi()
-		.ConfigureFileUpload()
-		.ConfigureConfigureIdentity()
-		.ConfigureMapster()
-		.ConfigureFluentValidation()
-		.ConfigureAuthentication();
-}
+	serverOptions.Limits.MaxRequestBodySize = 104857600; // 100 MB (adjust as needed)
+});
+
+builder
+	.ConfigureCors()
+	.ConfigureServices()
+	.ConfigureSwaggerOpenApi()
+	.ConfigureFileUpload()
+	.ConfigureConfigureIdentity()
+	.ConfigureMapster()
+	.ConfigureFluentValidation()
+	.ConfigureAuthentication();
 
 
 WebApplication app = builder.Build();
