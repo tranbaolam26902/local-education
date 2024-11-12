@@ -38,6 +38,8 @@ export default function useAxiosPrivate() {
                     previousRequest.headers.Authorization = `bearer ${newAccessToken}`;
                     return axiosPrivate(previousRequest);
                 }
+
+                return Promise.reject(error);
             }
         );
 
