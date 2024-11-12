@@ -6,6 +6,8 @@ using LocalEducation.Services.EducationRepositories.Interfaces;
 using LocalEducation.WebApi.Media;
 using LocalEducation.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -92,7 +94,7 @@ public static class WebApplicationExtensions
 		{
 			options.AddPolicy("AllowAll", policyBuilder =>
 				policyBuilder
-					/*.WithOrigins(builder.Configuration["AllowLocalHost"] ?? "")*/
+					.WithOrigins(builder.Configuration["AllowLocalHost"] ?? "")
 					.SetIsOriginAllowed(_ => true)
 					.AllowAnyHeader()
 					.AllowAnyMethod()
@@ -139,10 +141,20 @@ public static class WebApplicationExtensions
 	public static WebApplicationBuilder ConfigureFileUpload(
 		this WebApplicationBuilder builder)
 	{
-		//builder.Services.Configure<FormOptions>(options =>
-		//{
-		//    options.MultipartBodyLengthLimit = 1073741824; // 1GB in bytes
-		//});
+		builder.Services.Configure<IISServerOptions>(options =>
+		{
+			options.MaxRequestBodySize = 1073741824;
+		});
+
+		builder.Services.Configure<KestrelServerOptions>(options =>
+		{
+			options.Limits.MaxRequestBodySize = 1073741824;
+		});
+
+		builder.Services.Configure<FormOptions>(options =>
+		{
+			options.MultipartBodyLengthLimit = 1073741824; // 1GB in bytes
+		});
 
 		builder.WebHost.UseKestrel(option =>
 		{
@@ -161,7 +173,7 @@ public static class WebApplicationExtensions
 
 			long? length = context.Request.ContentLength;
 			long maxRequestBodySizeBytes = 1073741824; // 1GB in bytes
-			if (length is > 0 && length >= maxRequestBodySizeBytes) // Check if the length of the request body exceeds the limit
+			if (length.HasValue && length >= maxRequestBodySizeBytes) // Check if the length of the request body exceeds the limit
 			{
 				context.Response.StatusCode = StatusCodes.Status413RequestEntityTooLarge;
 				await context.Response.WriteAsync("Request body too large");
@@ -238,10 +250,10 @@ public static class WebApplicationExtensions
 				s.SwaggerEndpoint("/swagger/v1/swagger.json", "Local Education API V1"));
 		}
 
+		app.UseHttpsRedirection();
 		app.UseCors("AllowAll");
 
 		app.UseStaticFiles();
-		app.UseHttpsRedirection();
 
 		app.UseAuthentication();
 		app.UseAuthorization();

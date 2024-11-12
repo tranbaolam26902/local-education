@@ -106,6 +106,7 @@ public static class FileEndpoints
 
 	#region Post function
 
+	[DisableRequestSizeLimit]
 	private static async Task<IResult> UploadFile(
 		HttpContext context,
 		HttpRequest request,
@@ -125,15 +126,14 @@ public static class FileEndpoints
 					"Thư mục không tồn tại hoặc chưa được kích hoạt"));
 			}
 
-			if (request.Form.Files.Count == 0)
-			{
-				return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest,
-					"Không có tập tin nào được tải lên."));
-			}
-
 			string folderPath = "uploads/media/" + user.Id.ToString("N");
 
 			IFormFile formFile = context.Request.Form.Files[0];
+
+			if (formFile is null || formFile.Length == 0)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, "Không có tập tin được gửi lên"));
+			}
 
 			string filePath = await media.UploadFileAsync(
 				formFile.OpenReadStream(),

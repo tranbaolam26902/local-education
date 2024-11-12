@@ -5,11 +5,6 @@ using LocalEducation.WebApi.Validations;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-	serverOptions.Limits.MaxRequestBodySize = 104857600; // 100 MB (adjust as needed)
-});
-
 builder
 	.ConfigureCors()
 	.ConfigureServices()
@@ -25,7 +20,7 @@ WebApplication app = builder.Build();
 {
 	app.SetupRequestPipeline();
 
-	app.SetupContext();
+	//app.SetupContext();
 
 	app.SetupMiddleware();
 
