@@ -4,21 +4,21 @@ namespace LocalEducation.Core.Entities;
 
 public class Progress : IEntity
 {
-    public Guid Id { get; set; }
+	public Guid Id { get; set; }
 
-    public Guid UserId { get; set; }
+	public Guid UserId { get; set; }
 
-    public Guid CourseId { get; set; }
+	public Guid CourseId { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+	public DateTime CreatedDate { get; set; }
 
-    public string Slides { get; set; }
+	public string Slides { get; set; }
 
-    // ======================================================
-    // Navigation properties
-    // ======================================================
+	// ======================================================
+	// Navigation properties
+	// ======================================================
 
-    public Course Course { get; set; }
+	public Course Course { get; set; }
 
-    public User User { get; set; }
+	public User User { get; set; }
 }

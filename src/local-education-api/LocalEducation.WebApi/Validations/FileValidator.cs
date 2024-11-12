@@ -5,10 +5,10 @@ namespace LocalEducation.WebApi.Validations;
 
 public class FileValidator : AbstractValidator<FileEditModel>
 {
-    public FileValidator()
-    {
-        RuleFor(s => s.Name)
-            .NotEmpty()
-            .WithMessage("Tên không được để trống");
-    }
+	public FileValidator()
+	{
+		RuleFor(s => s.Name)
+			.NotEmpty()
+			.WithMessage("Tên không được để trống");
+	}
 }

@@ -1,103 +1,103 @@
-﻿using LocalEducation.Services.EducationRepositories.Interfaces;
+﻿using LocalEducation.Core.Entities;
+using LocalEducation.Services.EducationRepositories.Interfaces;
+using LocalEducation.WebApi.Models;
 using LocalEducation.WebApi.Models.AudioModel;
 using LocalEducation.WebApi.Models.SceneModel;
 using LocalEducation.WebApi.Utilities;
-using LocalEducation.WebApi.Models;
-using LocalEducation.Core.Entities;
-using Microsoft.AspNetCore.Mvc;
 using MapsterMapper;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace LocalEducation.WebApi.Endpoints;
 
 public static class SceneEndpoints
 {
-    public static WebApplication MapSceneEndpoints(
-        this WebApplication app)
-    {
-        var builder = app.MapGroup("/api/scenes");
+	public static WebApplication MapSceneEndpoints(
+		this WebApplication app)
+	{
+		RouteGroupBuilder builder = app.MapGroup("/api/scenes");
 
-        #region Get method
+		#region Get method
 
-        builder.MapGet("/", GetScenesByTour)
-            .WithName("GetScenesByTour")
-            .Produces<ApiResponse<IList<SceneDto>>>();
+		builder.MapGet("/", GetScenesByTour)
+			.WithName("GetScenesByTour")
+			.Produces<ApiResponse<IList<SceneDto>>>();
 
-        #endregion
+		#endregion
 
-        #region Put method
+		#region Put method
 
-        builder.MapPut("/{sceneId:guid}/audio", UpdateAudioScene)
-            .WithName("UpdateAudioScene")
-            .RequireAuthorization("Manager")
-            .Produces<ApiResponse<SceneDto>>();
+		builder.MapPut("/{sceneId:guid}/audio", UpdateAudioScene)
+			.WithName("UpdateAudioScene")
+			.RequireAuthorization("Manager")
+			.Produces<ApiResponse<SceneDto>>();
 
-        #endregion
+		#endregion
 
-        return app;
-    }
+		return app;
+	}
 
-    #region Get function
+	#region Get function
 
-    private static async Task<IResult> GetScenesByTour(
-        [AsParameters] SceneFilterModel model,
-        [FromServices] ITourRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        var tour = await repository.GetTourBySlugAsync(model.TourSlug);
-        if (tour == null)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, $"Tour is not found with slug: '{model.TourSlug}'"));
-        }
+	private static async Task<IResult> GetScenesByTour(
+		[AsParameters] SceneFilterModel model,
+		[FromServices] ITourRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		Tour tour = await repository.GetTourBySlugAsync(model.TourSlug);
+		if (tour == null)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, $"Tour is not found with slug: '{model.TourSlug}'"));
+		}
 
-        var scenes = await repository.GetSceneByQueryAsync(tour, model.Keyword);
+		IList<Scene> scenes = await repository.GetSceneByQueryAsync(tour, model.Keyword);
 
-        var scenesDto = mapper.Map<IList<SceneDto>>(scenes);
+		IList<SceneDto> scenesDto = mapper.Map<IList<SceneDto>>(scenes);
 
-        return Results.Ok(ApiResponse.Success(scenesDto));
-    }
+		return Results.Ok(ApiResponse.Success(scenesDto));
+	}
 
-    #endregion
+	#endregion
 
-    #region Put function
+	#region Put function
 
-    private static async Task<IResult> UpdateAudioScene(
-        HttpContext context,
-        [FromRoute] Guid sceneId,
-        [FromBody] AudioEditModel model,
-        [FromServices] ITourRepository repository,
-        [FromServices] IMapper mapper)
-    {
-        try
-        {
-            var scene = await repository.GetSceneByIdAsync(sceneId);
+	private static async Task<IResult> UpdateAudioScene(
+		HttpContext context,
+		[FromRoute] Guid sceneId,
+		[FromBody] AudioEditModel model,
+		[FromServices] ITourRepository repository,
+		[FromServices] IMapper mapper)
+	{
+		try
+		{
+			Scene scene = await repository.GetSceneByIdAsync(sceneId);
 
-            if (scene == null)
-            {
-                return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, $"Scene không tồn tại"));
-            }
-            else if (scene.Tour.UserId != context.GetCurrentUser().Id)
-            {
-                return Results.Ok(ApiResponse.Fail(
-                    HttpStatusCode.Forbidden,
-                    $"Bạn không được phép thực hiện yêu cầu này"));
-            }
+			if (scene == null)
+			{
+				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, $"Scene không tồn tại"));
+			}
+			else if (scene.Tour.UserId != context.GetCurrentUser().Id)
+			{
+				return Results.Ok(ApiResponse.Fail(
+					HttpStatusCode.Forbidden,
+					$"Bạn không được phép thực hiện yêu cầu này"));
+			}
 
-            var audio = mapper.Map<Audio>(model);
+			Audio audio = mapper.Map<Audio>(model);
 
-            scene.Audio = audio;
+			scene.Audio = audio;
 
-            await repository.UpdateSceneAsync(scene);
+			await repository.UpdateSceneAsync(scene);
 
-            var sceneDto = mapper.Map<SceneDto>(scene);
+			SceneDto sceneDto = mapper.Map<SceneDto>(scene);
 
-            return Results.Ok(ApiResponse.Success(sceneDto));
-        }
-        catch (Exception e)
-        {
-            return Results.Ok(ApiResponse.Fail(HttpStatusCode.InternalServerError, e.Message));
-        }
-    }
+			return Results.Ok(ApiResponse.Success(sceneDto));
+		}
+		catch (Exception e)
+		{
+			return Results.Ok(ApiResponse.Fail(HttpStatusCode.InternalServerError, e.Message));
+		}
+	}
 
-    #endregion
+	#endregion
 }

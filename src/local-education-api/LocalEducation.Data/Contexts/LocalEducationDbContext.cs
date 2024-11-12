@@ -25,25 +25,25 @@ public class LocalEducationDbContext : DbContext
 
 	public DbSet<Pin> Pins { get; set; }
 
-    public DbSet<Audio> Audios { get; set; }
+	public DbSet<Audio> Audios { get; set; }
 
 	public DbSet<LinkHotspot> LinkHotspots { get; set; }
 
 	public DbSet<InfoHotspot> InfoHotspots { get; set; }
 
-    public DbSet<Progress> Progresses { get; set; }
+	public DbSet<Progress> Progresses { get; set; }
 
-    public DbSet<Course> Courses { get; set; }
+	public DbSet<Course> Courses { get; set; }
 
-    public DbSet<Lesson> Lessons { get; set; }
+	public DbSet<Lesson> Lessons { get; set; }
 
-    public DbSet<Slide> Slides { get; set; }
+	public DbSet<Slide> Slides { get; set; }
 
-    public DbSet<Question> Questions { get; set; }
+	public DbSet<Question> Questions { get; set; }
 
 	public DbSet<Option> Options { get; set; }
 
-    public DbSet<ResultDetail> ResultDetails { get; set; }	
+	public DbSet<ResultDetail> ResultDetails { get; set; }
 
 	public LocalEducationDbContext(DbContextOptions<LocalEducationDbContext> options) : base(options)
 	{

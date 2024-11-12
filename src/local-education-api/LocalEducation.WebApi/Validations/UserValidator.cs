@@ -33,20 +33,20 @@ public class UserValidator : AbstractValidator<UserEditModel>
 
 public class PasswordEditModelValidator : AbstractValidator<PasswordEditModel>
 {
-    public PasswordEditModelValidator()
-    {
-        RuleFor(s => s.OldPassword)
-            .NotEmpty()
-            .WithMessage("Mật khẩu cũ không được để trống.");
+	public PasswordEditModelValidator()
+	{
+		RuleFor(s => s.OldPassword)
+			.NotEmpty()
+			.WithMessage("Mật khẩu cũ không được để trống.");
 
-        RuleFor(s => s.NewPassword)
-            .NotEmpty()
-            .WithMessage("Mật khẩu mới không được để trống.")
-            .MinimumLength(6)
-            .WithMessage("Mật khẩu mới phải nhiều hơn 6 ký tự.");
+		RuleFor(s => s.NewPassword)
+			.NotEmpty()
+			.WithMessage("Mật khẩu mới không được để trống.")
+			.MinimumLength(6)
+			.WithMessage("Mật khẩu mới phải nhiều hơn 6 ký tự.");
 
-        RuleFor(s => s.ConfirmPassword)
-            .Equal(s => s.NewPassword)
-            .WithMessage("Mật khẩu xác nhận không khớp.");
-    }
+		RuleFor(s => s.ConfirmPassword)
+			.Equal(s => s.NewPassword)
+			.WithMessage("Mật khẩu xác nhận không khớp.");
+	}
 }

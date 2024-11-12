@@ -34,9 +34,9 @@ public class LinkHotspotMap : IEntityTypeConfiguration<LinkHotspot>
 			.IsRequired()
 			.HasDefaultValue(0);
 
-        builder.Property(c => c.CreatedDate)
-            .IsRequired()
-            .HasColumnType("datetime");
-        #endregion
-    }
+		builder.Property(c => c.CreatedDate)
+			.IsRequired()
+			.HasColumnType("datetime");
+		#endregion
+	}
 }

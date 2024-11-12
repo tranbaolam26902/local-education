@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-
-namespace LocalEducation.WebApi.Models.FileModel;
+﻿namespace LocalEducation.WebApi.Models.FileModel;
 
 public class FileDto
 {

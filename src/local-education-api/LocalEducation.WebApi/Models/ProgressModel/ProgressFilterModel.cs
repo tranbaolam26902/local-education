@@ -2,5 +2,5 @@
 
 public class ProgressFilterModel : PagingModel
 {
-    public string Keyword { get; set; }
+	public string Keyword { get; set; }
 }

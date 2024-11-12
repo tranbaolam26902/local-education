@@ -1,5 +1,5 @@
-﻿using System.Net;
-using FluentValidation.Results;
+﻿using FluentValidation.Results;
+using System.Net;
 
 namespace LocalEducation.WebApi.Models;
 
@@ -14,7 +14,7 @@ public class ApiResponse
 	protected ApiResponse()
 	{
 		StatusCode = HttpStatusCode.OK;
-		Errors = new List<string>();
+		Errors = [];
 	}
 
 	public static ApiResponse<T> Success<T>(
@@ -41,32 +41,29 @@ public class ApiResponse
 		};
 	}
 
-    public static ApiResponse<T> Fail<T>(
-        HttpStatusCode statusCode,
-        T result, params string[] errorMessages)
-    {
-        return new ApiResponse<T>
-        {
-            Result = result,
-            StatusCode = statusCode,
+	public static ApiResponse<T> Fail<T>(
+		HttpStatusCode statusCode,
+		T result, params string[] errorMessages)
+	{
+		return new ApiResponse<T>
+		{
+			Result = result,
+			StatusCode = statusCode,
 			Errors = errorMessages
-        };
-    }
+		};
+	}
 
-    public static ApiResponse Fail(
+	public static ApiResponse Fail(
 		HttpStatusCode statusCode,
 		params string[] errorMessages)
 	{
-		if (errorMessages == null || errorMessages.Length == 0)
-		{
-			throw new ArgumentException(nameof(errorMessages));
-		}
-
-		return new ApiResponse()
-		{
-			StatusCode = statusCode,
-			Errors = new List<string>(errorMessages)
-		};
+		return errorMessages == null || errorMessages.Length == 0
+			? throw new ArgumentException(nameof(errorMessages))
+			: new ApiResponse()
+			{
+				StatusCode = statusCode,
+				Errors = new List<string>(errorMessages)
+			};
 	}
 
 	public static ApiResponse Fail(

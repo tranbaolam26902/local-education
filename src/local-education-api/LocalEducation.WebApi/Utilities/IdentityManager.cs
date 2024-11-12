@@ -1,13 +1,13 @@
 ﻿using LocalEducation.Core.Collections;
 using LocalEducation.Core.Constants;
 using LocalEducation.Core.Entities;
+using LocalEducation.Services.EducationRepositories.Interfaces;
 using LocalEducation.WebApi.Models.UserModel;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using LocalEducation.Services.EducationRepositories.Interfaces;
 
 namespace LocalEducation.WebApi.Utilities;
 
@@ -20,19 +20,19 @@ public static class IdentityManager
 		{
 			if (context.User.Identity is ClaimsIdentity identity)
 			{
-				var userClaims = identity.Claims;
+				IEnumerable<Claim> userClaims = identity.Claims;
 
-                var enumerable = userClaims.ToList();
-                return new UserDto
+				List<Claim> enumerable = userClaims.ToList();
+				return new UserDto
 				{
 					Username = enumerable.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
 					Email = enumerable.FirstOrDefault(o => o.Type == ClaimTypes.Email)?.Value,
 					Name = enumerable.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
 					Id = Guid.Parse(enumerable.FirstOrDefault(o => o.Type == ClaimTypes.Sid)?.Value!),
 					RoleName = enumerable.Where(c => c.Type == ClaimTypes.Role)
-						.Any(c => c.Value == "Admin") ? "Admin" : 
-                        enumerable.Where(c => c.Type == ClaimTypes.Role)
-                        .Any(c => c.Value == "Manger") ? "Manager" : "User",
+						.Any(c => c.Value == "Admin") ? "Admin" :
+						enumerable.Where(c => c.Type == ClaimTypes.Role)
+						.Any(c => c.Value == "Manger") ? "Manager" : "User",
 					Roles = enumerable.Where(c => c.Type == ClaimTypes.Role)
 					.Select(c => new RoleDto { Name = c.Value }).ToList()
 
@@ -50,25 +50,25 @@ public static class IdentityManager
 		this UserDto user,
 		IConfiguration config)
 	{
-		var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? ""));
-		var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+		SymmetricSecurityKey securityKey = new(Encoding.UTF8.GetBytes(config["Jwt:Key"] ?? ""));
+		SigningCredentials credentials = new(securityKey, SecurityAlgorithms.HmacSha256);
 
-		var claims = new List<Claim>()
-		{
+		List<Claim> claims =
+		[
 			new (ClaimTypes.Sid, user.Id.ToString()),
 			new (ClaimTypes.NameIdentifier, user.Username),
 			new (ClaimTypes.Email, user.Email),
 			new (ClaimTypes.Name, user.Name),
-		};
+		];
 
-		foreach (var role in user.Roles)
+		foreach (RoleDto role in user.Roles)
 		{
 			claims.Add(new Claim(ClaimTypes.Role, role.Name));
 		}
 
 		_ = int.TryParse(config["Jwt:ExprToken"], out int tokenValidityInMinutes);
 
-		var token = new JwtSecurityToken(config["Jwt:Issuer"],
+		JwtSecurityToken token = new(config["Jwt:Issuer"],
 			config["Jwt:Audience"],
 			claims,
 			expires: DateTime.Now.AddMinutes(tokenValidityInMinutes),
@@ -84,18 +84,13 @@ public static class IdentityManager
 
 	public static string LoginResult(this LoginStatus status)
 	{
-		if (status == LoginStatus.Username)
-		{
-			return "Tên đăng nhập không chính xác.";
-		}
-
-		return "Mật khẩu không chính xác.";
+		return status == LoginStatus.Username ? "Tên đăng nhập không chính xác." : "Mật khẩu không chính xác.";
 	}
 
 	public static RefreshToken GenerateRefreshToken(this string userAgent, string ipAddress, IConfiguration config)
 	{
 		_ = int.TryParse(config["JWT:ExprRefresh"], out int exprRefresh);
-		var refreshToken = new RefreshToken
+		RefreshToken refreshToken = new()
 		{
 			Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(128)),
 			TokenExpires = DateTime.Now.AddDays(exprRefresh),
@@ -104,7 +99,7 @@ public static class IdentityManager
 			UserAgent = userAgent
 		};
 
-		return refreshToken;	
+		return refreshToken;
 	}
 
 	public static async Task SetRefreshToken(
@@ -114,7 +109,7 @@ public static class IdentityManager
 		HttpContext context)
 	{
 		// Sets the options for the refresh token cookie
-		var cookieOptions = new CookieOptions()
+		CookieOptions cookieOptions = new()
 		{
 			HttpOnly = true,
 			Expires = userLogin.TokenExpires,
@@ -125,7 +120,7 @@ public static class IdentityManager
 
 		// Adds the refresh token to the response cookies with the specified options
 		context.Response.Cookies.Append("refreshToken", userLogin.RefreshToken, cookieOptions);
-		
+
 		// Sets the refresh token in the database for the specified user
 		await repository.SetRefreshTokenAsync(userId, userLogin);
 	}

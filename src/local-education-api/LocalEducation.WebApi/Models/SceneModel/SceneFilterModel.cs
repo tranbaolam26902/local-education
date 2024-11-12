@@ -2,8 +2,8 @@
 
 public class SceneFilterModel
 {
-    public string Keyword { get; set; } = "";
+	public string Keyword { get; set; } = "";
 
-    public string TourSlug { get; set; }
+	public string TourSlug { get; set; }
 
 }

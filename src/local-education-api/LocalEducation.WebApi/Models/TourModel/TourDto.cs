@@ -25,5 +25,5 @@ public class TourDto
 
 	public IList<SceneDto> Scenes { get; set; }
 
-    public AtlasDto Atlas { get; set; }
+	public AtlasDto Atlas { get; set; }
 }

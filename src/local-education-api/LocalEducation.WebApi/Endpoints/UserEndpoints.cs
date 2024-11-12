@@ -1,17 +1,16 @@
-﻿using Mapster;
-using System.Net;
+﻿using LocalEducation.Core.Collections;
+using LocalEducation.Core.Entities;
+using LocalEducation.Core.Queries;
+using LocalEducation.Services.EducationRepositories.Interfaces;
+using LocalEducation.WebApi.Filters;
+using LocalEducation.WebApi.Models;
+using LocalEducation.WebApi.Models.UserModel;
+using LocalEducation.WebApi.Utilities;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
-using LocalEducation.Core.Queries;
-using LocalEducation.Core.Entities;
-using LocalEducation.WebApi.Models;
-using LocalEducation.WebApi.Filters;
-using LocalEducation.WebApi.Utilities;
-using LocalEducation.Core.Collections;
 using System.IdentityModel.Tokens.Jwt;
-using LocalEducation.WebApi.Models.UserModel;
-using LocalEducation.Services.EducationRepositories.Interfaces;
-using LocalEducation.Core.Dto;
+using System.Net;
 
 namespace LocalEducation.WebApi.Endpoints;
 
@@ -20,7 +19,7 @@ public static class UserEndpoints
 	public static WebApplication MapUserEndpoints(
 		this WebApplication app)
 	{
-		var builder = app.MapGroup("/api/users");
+		RouteGroupBuilder builder = app.MapGroup("/api/users");
 
 		#region Get Method
 
@@ -104,30 +103,30 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var ipAddress = context.Connection.RemoteIpAddress?.ToString();
-			var userAgent = context.Request.Headers["User-Agent"].ToString();
+			string ipAddress = context.Connection.RemoteIpAddress?.ToString();
+			string userAgent = context.Request.Headers["User-Agent"].ToString();
 
 			// Authenticate user with provided username and password
 
-			var user = mapper.Map<User>(model);
-			var result = await user.Authenticate(repository);
+			User user = mapper.Map<User>(model);
+			Core.Constants.LoginResult result = await user.Authenticate(repository);
 
 			// Check if authentication was successful
 			if (result.Status == LoginStatus.Success)
 			{
-				var userDto = mapper.Map<UserDto>(result.User);
+				UserDto userDto = mapper.Map<UserDto>(result.User);
 
 				// Generate a new access token and refresh token
-				var token = userDto.Generate(configuration);
-				var refreshToken = userAgent.GenerateRefreshToken(ipAddress, configuration);
+				JwtSecurityToken token = userDto.Generate(configuration);
+				RefreshToken refreshToken = userAgent.GenerateRefreshToken(ipAddress, configuration);
 
 				// Set the new refresh token in the HTTP response's cookies
-				var userLogin = mapper.Map<UserLogin>(refreshToken);
+				UserLogin userLogin = mapper.Map<UserLogin>(refreshToken);
 
 				await repository.SetRefreshToken(userDto.Id, userLogin, context);
 
 				// Return the new access token
-				var accessToken = new AccessTokenModel()
+				AccessTokenModel accessToken = new()
 				{
 					Token = new JwtSecurityTokenHandler().WriteToken(token),
 					ExpiresToken = token.ValidTo,
@@ -154,13 +153,13 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var userAgent = context.Request.Headers["User-Agent"].ToString();
-			var ipAddress = context.Connection.RemoteIpAddress?.ToString();
-			var refreshToken = context.Request.Cookies["refreshToken"];
+			string userAgent = context.Request.Headers["User-Agent"].ToString();
+			string ipAddress = context.Connection.RemoteIpAddress?.ToString();
+			string refreshToken = context.Request.Cookies["refreshToken"];
 			// Check if the incoming request has a valid refresh token
 
 			// Retrieve user information using the refresh token
-			var userLogin = await repository.GetRefreshTokenAsync(refreshToken, userAgent, ipAddress);
+			UserLogin userLogin = await repository.GetRefreshTokenAsync(refreshToken, userAgent, ipAddress);
 
 			// Handle different cases depending on the validity of the refresh token
 			if (userLogin == null)
@@ -169,30 +168,30 @@ public static class UserEndpoints
 			}
 			else if (userLogin.TokenExpires < DateTime.Now)
 			{
-				var lastLoginDate = userLogin.TokenExpires;
-				var currentDate = DateTime.Now;
+				DateTime lastLoginDate = userLogin.TokenExpires;
+				DateTime currentDate = DateTime.Now;
 
-				var daysSinceLastLogin = (currentDate - lastLoginDate).Days;
+				int daysSinceLastLogin = (currentDate - lastLoginDate).Days;
 				return Results.Ok(ApiResponse.Fail(HttpStatusCode.Unauthorized, $"Refresh token đã hết hạn vào {daysSinceLastLogin} ngày trước."));
 			}
 
-			var user = await repository.GetUserByIdAsync(userLogin.UserId, true);
+			User user = await repository.GetUserByIdAsync(userLogin.UserId, true);
 
 			// Generate a new access token and refresh token
-			var userDto = mapper.Map<UserDto>(user);
-			var token = userDto.Generate(configuration);
-			var newRefreshToken = userAgent.GenerateRefreshToken(ipAddress, configuration);
+			UserDto userDto = mapper.Map<UserDto>(user);
+			JwtSecurityToken token = userDto.Generate(configuration);
+			RefreshToken newRefreshToken = userAgent.GenerateRefreshToken(ipAddress, configuration);
 
 			// Set the new refresh token in the HTTP response's cookies
 			await repository.SetRefreshToken(userDto.Id, mapper.Map<UserLogin>(newRefreshToken), context);
 
 			// Return the new access token
-			var accessToken = new AccessTokenModel()
+			AccessTokenModel accessToken = new()
 			{
 				Token = new JwtSecurityTokenHandler().WriteToken(token),
 				UserDto = userDto,
-                ExpiresToken = token.ValidTo,
-            };
+				ExpiresToken = token.ValidTo,
+			};
 
 			return Results.Ok(ApiResponse.Success(accessToken));
 		}
@@ -208,7 +207,7 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var refreshToken = context.Request.Cookies["refreshToken"];
+			string refreshToken = context.Request.Cookies["refreshToken"];
 
 			if (await repository.DeleteRefreshTokenAsync(refreshToken))
 			{
@@ -232,14 +231,12 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var identity = context.GetCurrentUser();
-			var user = await repository.GetUserByIdAsync(identity.Id, true);
+			UserDto identity = context.GetCurrentUser();
+			User user = await repository.GetUserByIdAsync(identity.Id, true);
 
-			if (await repository.ChangePasswordAsync(user, model.OldPassword, model.NewPassword))
-			{
-				return Results.Ok(ApiResponse.Success("Thay đổi mật khẩu thành công"));
-			}
-			return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, "Mật khẩu không chính xác."));
+			return await repository.ChangePasswordAsync(user, model.OldPassword, model.NewPassword)
+				? Results.Ok(ApiResponse.Success("Thay đổi mật khẩu thành công"))
+				: Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, "Mật khẩu không chính xác."));
 		}
 		catch (Exception e)
 		{
@@ -255,18 +252,18 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var user = mapper.Map<User>(model);
+			User user = mapper.Map<User>(model);
 
-			var userExist = await repository.IsUserExistedAsync(user.Username);
+			bool userExist = await repository.IsUserExistedAsync(user.Username);
 
 			if (userExist)
 			{
 				return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, "Tài khoản đã tồn tại."));
 			}
 
-			var newUser = await repository.Register(user);
+			User newUser = await repository.Register(user);
 
-			var userDto = mapper.Map<UserDto>(newUser);
+			UserDto userDto = mapper.Map<UserDto>(newUser);
 
 			return Results.Ok(ApiResponse.Success(userDto));
 		}
@@ -284,15 +281,15 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var user = await repository.GetUserByIdAsync(model.UserId, true);
+			User user = await repository.GetUserByIdAsync(model.UserId, true);
 			if (user == null)
 			{
 				return Results.Ok(ApiResponse.Fail(HttpStatusCode.NotFound, "Tài khoản không tồn tại."));
 			}
 
-			var newUser = await repository.SetUserRolesAsync(user.Id, model.RoleIdList);
+			User newUser = await repository.SetUserRolesAsync(user.Id, model.RoleIdList);
 
-			var userDto = mapper.Map<UserDto>(newUser);
+			UserDto userDto = mapper.Map<UserDto>(newUser);
 
 			return Results.Ok(ApiResponse.Success(userDto));
 		}
@@ -310,20 +307,20 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var identity = context.GetCurrentUser();
+			UserDto identity = context.GetCurrentUser();
 
-			var user = await repository.GetUserByIdAsync(identity.Id);
+			User user = await repository.GetUserByIdAsync(identity.Id);
 
 			mapper.Map(model, user);
 
-			var result = await repository.UpdateProfileAsync(user);
+			User result = await repository.UpdateProfileAsync(user);
 
 			if (result == null)
 			{
 				return Results.Ok(ApiResponse.Fail(HttpStatusCode.BadRequest, "Cập nhật thất bại."));
 			}
 
-			var userDto = mapper.Map<UserDto>(user);
+			UserDto userDto = mapper.Map<UserDto>(user);
 			return Results.Ok(ApiResponse.Success(userDto));
 		}
 		catch (Exception e)
@@ -339,16 +336,16 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var userQuery = mapper.Map<UserQuery>(model);
+			UserQuery userQuery = mapper.Map<UserQuery>(model);
 
-			var userList = await repository.GetPagedUsersAsync(
+			Core.Contracts.IPagedList<UserDto> userList = await repository.GetPagedUsersAsync(
 				userQuery,
 				model,
 				p => p.ProjectToType<UserDto>());
 
-            var paginationResult = new PaginationResult<UserDto>(userList);
+			PaginationResult<UserDto> paginationResult = new(userList);
 
-            return Results.Ok(ApiResponse.Success(paginationResult));
+			return Results.Ok(ApiResponse.Success(paginationResult));
 		}
 		catch (Exception e)
 		{
@@ -363,10 +360,10 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var identity = context.GetCurrentUser();
+			UserDto identity = context.GetCurrentUser();
 
-			var user = await repository.GetUserByIdAsync(identity.Id);
-			var userDto = mapper.Map<UserDto>(user);
+			User user = await repository.GetUserByIdAsync(identity.Id);
+			UserDto userDto = mapper.Map<UserDto>(user);
 
 			return Results.Ok(ApiResponse.Success(userDto));
 		}
@@ -382,8 +379,8 @@ public static class UserEndpoints
 	{
 		try
 		{
-			var roles = await repository.GetRolesAsync();
-			var listRoles = mapper.Map<IList<RoleDto>>(roles);
+			IList<Role> roles = await repository.GetRolesAsync();
+			IList<RoleDto> listRoles = mapper.Map<IList<RoleDto>>(roles);
 
 			return Results.Ok(ApiResponse.Success(listRoles));
 		}

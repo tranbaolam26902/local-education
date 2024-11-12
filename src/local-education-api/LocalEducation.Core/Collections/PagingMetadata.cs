@@ -36,12 +36,16 @@ public class PagingMetadata : IPagedList
 		get
 		{
 			if (PageSize == 0)
+			{
 				return 0;
+			}
 
-			var total = TotalItemCount / PageSize;
+			int total = TotalItemCount / PageSize;
 
 			if (TotalItemCount % PageSize > 0)
+			{
 				total++;
+			}
 
 			return total;
 		}
@@ -49,14 +53,14 @@ public class PagingMetadata : IPagedList
 
 	public bool HasPreviousPage => PageIndex > 0;
 
-	public bool HasNextPage => (PageIndex < (PageCount - 1));
+	public bool HasNextPage => PageIndex < (PageCount - 1);
 
 	public int FirstItemIndex => (PageIndex * PageSize) + 1;
 
 	public int LastItemIndex
-		=> Math.Min(TotalItemCount, ((PageIndex * PageSize) + PageSize));
+		=> Math.Min(TotalItemCount, (PageIndex * PageSize) + PageSize);
 
-	public bool IsFirstPage => (PageIndex <= 0);
+	public bool IsFirstPage => PageIndex <= 0;
 
-	public bool IsLastPage => (PageIndex >= (PageCount - 1));
+	public bool IsLastPage => PageIndex >= (PageCount - 1);
 }

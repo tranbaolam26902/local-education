@@ -1,5 +1,4 @@
 ﻿using LocalEducation.Core.Contracts;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace LocalEducation.Core.Entities;
 
@@ -27,13 +26,13 @@ public class Tour : IEntity
 
 	public IList<Scene> Scenes { get; set; }
 
-    public Atlas Atlas { get; set; }
+	public Atlas Atlas { get; set; }
 
 	public User User { get; set; }
 
 	public Tour()
 	{
-		
+
 	}
 
 	public Tour(Guid id, Guid userId, string title, string urlSlug, DateTime createdDate, int viewCount, bool isPublished, bool isDeleted)

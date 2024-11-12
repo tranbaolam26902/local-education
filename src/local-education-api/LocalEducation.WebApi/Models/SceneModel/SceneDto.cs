@@ -24,8 +24,8 @@ public class SceneDto
 
 	public string UrlImage { get; set; }
 
-    public AudioDto Audio { get; set; }
-	
+	public AudioDto Audio { get; set; }
+
 	public IList<LinkHotspotDto> LinkHotspots { get; set; }
 
 	public IList<InfoHotspotDto> InfoHotspots { get; set; }
