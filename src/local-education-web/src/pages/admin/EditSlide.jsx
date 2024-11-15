@@ -204,7 +204,7 @@ export default function EditSlide() {
     const handleViewContent = () => {
         const editingSlide = {
             title: title.trim(),
-            content: contentRef.current.getContent(),
+            content: layout !== 'media' ? contentRef.current.getContent() : title.trim(),
             index,
             thumbnailPath: media.thumbnailPath,
             urlPath: media.path,

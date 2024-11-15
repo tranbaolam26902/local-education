@@ -77,86 +77,70 @@ export default function Content() {
     return (
         <main
             ref={containerRef}
-            className={`overflow-y-auto xl:overflow-y-hidden absolute z-0 top-0 left-0 bottom-0 right-0 xl:grid xl:grid-cols-3 flex flex-col ${learningSlice.isShowSidebar ? 'xl:right-96' : ''
-                } transition-all duration-300`}
+            className={`absolute bottom-0 left-0 right-0 top-0 z-0 overflow-y-auto ${
+                learningSlice.isShowSidebar ? 'xl:right-96' : ''
+            } transition-all duration-300`}
         >
-            {/* Start: Left section */}
-            <section
-                className={`relative ${slide.layout === 'full'
-                        ? 'xl:col-span-2'
-                        : slide.layout === 'media'
-                            ? 'xl:col-span-3 h-full'
-                            : slide.layout === 'text'
-                                ? 'hidden'
-                                : ''
-                    } bg-dark`}
-            >
+            {/* Start: Media section */}
+            <section className='flex items-center justify-center bg-dark'>
                 {slide.urlPath ? (
                     getFileType(extractFileName(slide.urlPath).extension) === 'image' ? (
-                        <div className='relative flex items-center justify-center w-full h-full'>
-                            <img
-                                src={`${import.meta.env.VITE_API_ENDPOINT}/${slide.urlPath}`}
-                                alt={slide.title}
-                                className='xl:absolute max-w-full max-h-full object-contain'
-                            />
-                        </div>
+                        <img
+                            src={`${import.meta.env.VITE_API_ENDPOINT}/${slide.urlPath}`}
+                            alt={slide.title}
+                            className='max-h-full max-w-full object-contain'
+                        />
                     ) : getFileType(extractFileName(slide.urlPath).extension) === 'video' ? (
-                        <video controls className='w-full h-full'>
+                        <video controls className='max-h-full max-w-full px-[8%]'>
                             <source src={`${import.meta.env.VITE_API_ENDPOINT}/${slide.urlPath}`} type='video/mp4' />
                         </video>
                     ) : getFileType(extractFileName(slide.urlPath).extension) === 'audio' ? (
-                        <audio controls className='xl:absolute xl:bottom-0 my-4 px-6 w-full'>
+                        <audio controls className='m-6 w-full'>
                             <source src={`${import.meta.env.VITE_API_ENDPOINT}/${slide.urlPath}`} type='audio/mp3' />
                         </audio>
                     ) : null
                 ) : null}
             </section>
-            {/* End: Left section */}
+            {/* End: Media section */}
 
-            {/* Start: Right section */}
-            <section
-                ref={textRef}
-                className={`${slide.layout === 'full'
-                        ? 'xl:col-span-1'
-                        : slide.layout === 'media'
-                            ? 'hidden'
-                            : slide.layout === 'text'
-                                ? 'overflow-y-auto xl:col-span-3 h-full'
-                                : ''
-                    } xl:overflow-y-auto p-6`}
-            >
-                <div className='relative my-4 xl:mt-0'>
-                    <div className='absolute z-10 -top-3 -left-3 flex items-center justify-center h-10 aspect-square font-bold text-2xl text-white bg-gradient-to-br from-white via-blue-300 to-blue-300 rounded-full'>
-                        {slide.index}
+            <section className='mx-auto flex max-w-3xl flex-col gap-y-4 p-4'>
+                <h1 className='text-justify text-lg font-bold uppercase'>
+                    Bài {slide.index}: {slide.title}
+                </h1>
+
+                {/* Start: Content section */}
+                <section ref={textRef} className={`${slide.layout === 'media' ? 'hidden' : ''}`}>
+                    <div className='dark:prose-heading:text-white prose max-w-full break-words dark:text-white dark:prose-h1:text-white dark:prose-h2:text-white dark:prose-h3:text-white dark:prose-h4:text-white dark:prose-p:text-white dark:prose-a:text-white dark:prose-blockquote:text-white dark:prose-figure:text-white dark:prose-figcaption:text-white dark:prose-strong:text-white dark:prose-em:text-white dark:prose-code:text-white dark:prose-pre:text-white dark:prose-ol:text-white dark:prose-ul:text-white dark:prose-li:text-white dark:prose-table:text-white dark:prose-thead:text-white dark:prose-tr:text-white dark:prose-th:text-white dark:prose-td:text-white dark:prose-lead:text-white'>
+                        {Parser().parse(
+                            slide.content
+                                ?.toString()
+                                .replaceAll('https://localhost:7272', import.meta.env.VITE_API_ENDPOINT)
+                        )}
                     </div>
-                    <h1 className='pl-10 pr-8 py-2 font-bold text-2xl border border-gray-200 rounded-2xl drop-shadow-md shadow-inner'>
-                        {slide.title}
-                    </h1>
-                </div>
-                <div className='max-w-full dark:text-white prose dark:prose-heading:text-white dark:prose-lead:text-white dark:prose-h1:text-white dark:prose-h2:text-white dark:prose-h3:text-white dark:prose-h4:text-white dark:prose-p:text-white dark:prose-a:text-white dark:prose-blockquote:text-white dark:prose-figure:text-white dark:prose-figcaption:text-white dark:prose-strong:text-white dark:prose-em:text-white dark:prose-code:text-white dark:prose-pre:text-white dark:prose-ol:text-white dark:prose-ul:text-white dark:prose-li:text-white dark:prose-table:text-white dark:prose-thead:text-white dark:prose-tr:text-white dark:prose-th:text-white dark:prose-td:text-white'>
-                    {Parser().parse(
-                        slide.content
-                            ?.toString()
-                            .replaceAll('https://localhost:7272', import.meta.env.VITE_API_ENDPOINT)
-                    )}
-                </div>
+                </section>
+                {/* End: Content section */}
+
+                <hr
+                    className={`${slide.layout === 'full' && auth.accessToken && questions.length > 0 ? '' : 'hidden'}`}
+                />
+
+                {/* Start: Content section */}
                 {auth.accessToken && questions.length > 0 && (
-                    <>
-                        <hr className='mt-3' />
-                        <div className='flex flex-col gap-y-4 mt-3'>
+                    <section>
+                        <div className='flex flex-col gap-y-4'>
                             <div className='flex items-center justify-between gap-x-4'>
-                                <h2 className='font-bold text-2xl'>Câu hỏi</h2>
+                                <h2 className='font-bold'>Trắc nghiệm</h2>
                                 <span>
-                                    Yêu cầu: {slide.minPoint}/{questions.length} câu
+                                    Yêu cầu: đúng {slide.minPoint}/{questions.length} câu
                                 </span>
                             </div>
                             {questions.map((question, questionIndex) => (
                                 <div key={question.id} className='flex flex-col gap-y-4'>
-                                    <h4 className='font-semibold text-xl'>Câu hỏi {questionIndex + 1}</h4>
+                                    <h4 className='font-semibold'>Câu hỏi {questionIndex + 1}</h4>
                                     {question.url && (
                                         <img src={`${import.meta.env.VITE_API_ENDPOINT}/${question.url}`} alt='img' />
                                     )}
-                                    <h4 className='font-semibold text-lg'>{question.content}</h4>
+                                    <h4 className='font-semibold'>{question.content}</h4>
                                     <div className='flex flex-col gap-y-4'>
                                         {question.options.map((option) => (
                                             <div key={option.id}>
@@ -170,11 +154,12 @@ export default function Content() {
                                                 <label
                                                     id={`${option.id}-label`}
                                                     htmlFor={option.id}
-                                                    className={`pl-1 ${isIncorrectAnswer(question.index, option.index) > 0 &&
-                                                            learningSlice.incorrectQuestions.length > 0
+                                                    className={`pl-1 ${
+                                                        isIncorrectAnswer(question.index, option.index) > 0 &&
+                                                        learningSlice.incorrectQuestions.length > 0
                                                             ? 'text-red-400'
                                                             : ''
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {option.content}
                                                 </label>
@@ -184,9 +169,10 @@ export default function Content() {
                                 </div>
                             ))}
                         </div>
-                    </>
+                    </section>
                 )}
             </section>
+            {/* End: Questions section */}
         </main>
     );
 }
