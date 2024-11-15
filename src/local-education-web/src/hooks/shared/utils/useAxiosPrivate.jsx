@@ -31,10 +31,15 @@ export default function useAxiosPrivate() {
         const responseIntercept = axiosPrivate.interceptors.response.use(
             (response) => response,
             async (error) => {
-                const newAccessToken = await refresh();
                 const previousRequest = error?.config;
-                previousRequest.headers.Authorization = `bearer ${newAccessToken}`;
-                return axiosPrivate(previousRequest);
+                if (error?.response?.status === 403 && !previousRequest?.sent) {
+                    previousRequest.sent = true;
+                    const newAccessToken = await refresh();
+                    previousRequest.headers.Authorization = `bearer ${newAccessToken}`;
+                    return axiosPrivate(previousRequest);
+                }
+
+                return Promise.reject(error);
             }
         );
 
