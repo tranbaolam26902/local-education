@@ -20,7 +20,7 @@ WebApplication app = builder.Build();
 {
 	app.SetupRequestPipeline();
 
-	//app.SetupContext();
+	app.SetupContext();
 
 	app.SetupMiddleware();
 

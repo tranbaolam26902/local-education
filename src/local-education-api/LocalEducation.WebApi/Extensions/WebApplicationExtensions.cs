@@ -19,6 +19,8 @@ namespace LocalEducation.WebApi.Extensions;
 
 public static class WebApplicationExtensions
 {
+	public static readonly int _1GB = 1073741824;
+
 	public static WebApplicationBuilder ConfigureServices(
 		this WebApplicationBuilder builder)
 	{
@@ -66,15 +68,13 @@ public static class WebApplicationExtensions
 					ClockSkew = TimeSpan.Zero
 				});
 
-		builder.Services.AddAuthorization(options =>
-		{
-			options.AddPolicy("Admin", policy =>
-				policy.RequireRole(ClaimTypes.Role, "Admin"));
-			options.AddPolicy("Manager", policy =>
-				policy.RequireRole(ClaimTypes.Role, "Manager"));
-			options.AddPolicy("User", policy =>
+		builder.Services.AddAuthorizationBuilder()
+			.AddPolicy("Admin", policy =>
+				policy.RequireRole(ClaimTypes.Role, "Admin"))
+			.AddPolicy("Manager", policy =>
+				policy.RequireRole(ClaimTypes.Role, "Manager"))
+			.AddPolicy("User", policy =>
 				policy.RequireRole(ClaimTypes.Role, "User"));
-		});
 
 		return builder;
 	}
@@ -94,7 +94,7 @@ public static class WebApplicationExtensions
 		{
 			options.AddPolicy("AllowAll", policyBuilder =>
 				policyBuilder
-					.WithOrigins(builder.Configuration["AllowLocalHost"] ?? "")
+					//.WithOrigins(builder.Configuration["AllowLocalHost"] ?? "")
 					.SetIsOriginAllowed(_ => true)
 					.AllowAnyHeader()
 					.AllowAnyMethod()
@@ -143,22 +143,27 @@ public static class WebApplicationExtensions
 	{
 		builder.Services.Configure<IISServerOptions>(options =>
 		{
-			options.MaxRequestBodySize = 1073741824;
+			options.MaxRequestBodySize = _1GB;
+		});
+
+		builder.WebHost.ConfigureKestrel(options =>
+		{
+			options.Limits.MaxRequestBodySize = _1GB;
 		});
 
 		builder.Services.Configure<KestrelServerOptions>(options =>
 		{
-			options.Limits.MaxRequestBodySize = 1073741824;
+			options.Limits.MaxRequestBodySize = _1GB;
 		});
 
 		builder.Services.Configure<FormOptions>(options =>
 		{
-			options.MultipartBodyLengthLimit = 1073741824; // 1GB in bytes
+			options.MultipartBodyLengthLimit = _1GB;
 		});
 
 		builder.WebHost.UseKestrel(option =>
 		{
-			option.Limits.MaxRequestBodySize = 1073741824;
+			option.Limits.MaxRequestBodySize = _1GB;
 		});
 
 		return builder;
@@ -172,8 +177,8 @@ public static class WebApplicationExtensions
 			context.Request.EnableBuffering(); // Enable buffering to allow reading the body multiple times
 
 			long? length = context.Request.ContentLength;
-			long maxRequestBodySizeBytes = 1073741824; // 1GB in bytes
-			if (length.HasValue && length >= maxRequestBodySizeBytes) // Check if the length of the request body exceeds the limit
+			long maxRequestBodySizeBytes = _1GB;
+			if (length.HasValue && length > maxRequestBodySizeBytes) // Check if the length of the request body exceeds the limit
 			{
 				context.Response.StatusCode = StatusCodes.Status413RequestEntityTooLarge;
 				await context.Response.WriteAsync("Request body too large");
