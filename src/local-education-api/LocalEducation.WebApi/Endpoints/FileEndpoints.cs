@@ -106,7 +106,6 @@ public static class FileEndpoints
 
 	#region Post function
 
-	[DisableRequestSizeLimit]
 	private static async Task<IResult> UploadFile(
 		HttpContext context,
 		HttpRequest request,
